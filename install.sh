@@ -652,22 +652,50 @@ create_symlinks() {
             
         # Handle copy mode
         elif [[ "$mode" == "copy" ]]; then
-            # Check if target exists and is identical
-            if [[ -e "$target" ]]; then
-                # For directories, always back up and re-copy to ensure freshness
-                # For files, could compare with diff but simpler to just back up
-                backup_file "$target"
-            fi
-            
-            # Copy file or directory
-            if [[ "$DRY_RUN" == true ]]; then
-                log_dry "cp -r $abs_source $target"
+            # If source is a directory, copy all font files (*.ttf, *.otf) flat into target
+            if [[ -d "$abs_source" ]]; then
+                ensure_dir "$target"
+                local font_count=0
+                while IFS= read -r -d '' font_file; do
+                    local font_name
+                    font_name="$(basename "$font_file")"
+                    local font_target="${target}/${font_name}"
+                    if [[ -f "$font_target" ]] && cmp -s "$font_file" "$font_target"; then
+                        ((skipped++)) || true
+                        continue
+                    fi
+                    if [[ "$DRY_RUN" == true ]]; then
+                        log_dry "cp $font_file -> $font_target"
+                    else
+                        cp "$font_file" "$font_target"
+                        increment_changes
+                    fi
+                    ((font_count++)) || true
+                done < <(find "$abs_source" -type f \( -name "*.ttf" -o -name "*.otf" \) -print0)
+                if [[ $font_count -gt 0 ]]; then
+                    log_info "Copied $font_count font(s) to $target"
+                    ((created++)) || true
+                else
+                    log_skip "No font files found in $abs_source"
+                    ((skipped++)) || true
+                fi
             else
-                cp -r "$abs_source" "$target"
-                log_info "Copied: $abs_source -> $target"
-                increment_changes
+                # Single file copy
+                if [[ -f "$target" ]] && cmp -s "$abs_source" "$target"; then
+                    log_skip "$target (unchanged)"
+                    ((skipped++)) || true
+                else
+                    if [[ "$DRY_RUN" == true ]]; then
+                        log_dry "cp $abs_source -> $target"
+                    else
+                        ensure_dir "$(dirname "$target")"
+                        cp "$abs_source" "$target"
+                        log_info "Copied: $abs_source -> $target"
+                        increment_changes
+                    fi
+                    ((created++)) || true
+                fi
             fi
-            ((created++)) || true
             
         else
             log_warn "Unknown mode '$mode' for $source (skipping)"

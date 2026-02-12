@@ -63,19 +63,13 @@ source = "vim/.vimrc"
 target = "~/.vimrc"
 
 # =============================================================================
-# Fonts (Copy Mode)
+# Fonts (Copy Mode - Directory)
 # =============================================================================
-# Fonts should be copied rather than symlinked, as macOS expects them to be
-# real files in ~/Library/Fonts/.
-#
-# Example entries (uncomment and modify as needed):
-#
-# [[fonts]]
-# source = "fonts/FiraCode-Regular.ttf"
-# target = "~/Library/Fonts/FiraCode-Regular.ttf"
-# mode = "copy"
-#
-# [[fonts]]
-# source = "fonts/JetBrainsMono-Regular.ttf"
-# target = "~/Library/Fonts/JetBrainsMono-Regular.ttf"
-# mode = "copy"
+# Fonts are copied (not symlinked) to ~/Library/Fonts/ because macOS expects
+# real files. When source is a directory, all font files (*.ttf, *.otf) within
+# it (recursively) are copied to the target directory.
+
+[[fonts]]
+source = "fonts/"
+target = "~/Library/Fonts/"
+mode = "copy"
