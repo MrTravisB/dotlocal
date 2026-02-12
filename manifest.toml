@@ -38,6 +38,10 @@ target = "~/.zshrc"
 source = "shell/travis.zsh"
 target = "~/.oh-my-zsh/custom/travis.zsh"
 
+[[shell]]
+source = "shell/travis.zsh-theme"
+target = "~/.oh-my-zsh/themes/travis.zsh-theme"
+
 # =============================================================================
 # Git Configuration
 # =============================================================================

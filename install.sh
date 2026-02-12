@@ -224,6 +224,172 @@ install_homebrew() {
     increment_changes
 }
 
+install_oh_my_zsh() {
+    log_info "Checking oh-my-zsh..."
+    
+    # Skip if not on real $HOME
+    if ! is_real_home; then
+        log_skip "oh-my-zsh installation (not on real \$HOME)"
+        return 0
+    fi
+    
+    local oh_my_zsh_dir="${TARGET_HOME}/.oh-my-zsh"
+    local zsh_custom="${ZSH_CUSTOM:-${oh_my_zsh_dir}/custom}"
+    
+    # Check if oh-my-zsh is already installed
+    if [[ -d "$oh_my_zsh_dir" ]]; then
+        log_ok "oh-my-zsh already installed at $oh_my_zsh_dir"
+    else
+        # Install oh-my-zsh
+        if [[ "$DRY_RUN" == true ]]; then
+            log_dry "Would install oh-my-zsh to $oh_my_zsh_dir"
+        else
+            log_info "Installing oh-my-zsh..."
+            if sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended; then
+                log_ok "oh-my-zsh installed successfully"
+                increment_changes
+            else
+                log_error "Failed to install oh-my-zsh"
+                return 1
+            fi
+        fi
+    fi
+    
+    # Install custom plugins
+    log_info "Checking oh-my-zsh custom plugins..."
+    
+    local plugins_dir="${zsh_custom}/plugins"
+    local plugins_updated=0
+    local plugins_cloned=0
+    
+    # Ensure plugins directory exists
+    if [[ "$DRY_RUN" == false && -d "$oh_my_zsh_dir" ]]; then
+        ensure_dir "$plugins_dir"
+    fi
+    
+    # -------------------------------------------------------------------------
+    # zsh-syntax-highlighting
+    # -------------------------------------------------------------------------
+    local plugin_name="zsh-syntax-highlighting"
+    local plugin_dir="${plugins_dir}/${plugin_name}"
+    log_info "Checking ${plugin_name}..."
+    
+    if [[ -d "$plugin_dir" ]]; then
+        # Directory exists, update it
+        if [[ "$DRY_RUN" == true ]]; then
+            log_dry "Would update $plugin_dir (git pull)"
+        else
+            log_info "Updating ${plugin_name}..."
+            if git -C "$plugin_dir" pull; then
+                log_ok "Updated ${plugin_name}"
+                increment_changes
+                ((plugins_updated++)) || true
+            else
+                log_warn "Failed to update ${plugin_name}"
+            fi
+        fi
+    else
+        # Directory does not exist, clone it
+        if [[ "$DRY_RUN" == true ]]; then
+            log_dry "Would clone https://github.com/zsh-users/${plugin_name}.git to $plugin_dir"
+        else
+            log_info "Cloning ${plugin_name}..."
+            if git clone https://github.com/zsh-users/${plugin_name}.git "$plugin_dir"; then
+                log_ok "Cloned ${plugin_name}"
+                increment_changes
+                ((plugins_cloned++)) || true
+            else
+                log_error "Failed to clone ${plugin_name}"
+            fi
+        fi
+    fi
+    
+    # -------------------------------------------------------------------------
+    # zsh-autosuggestions
+    # -------------------------------------------------------------------------
+    plugin_name="zsh-autosuggestions"
+    plugin_dir="${plugins_dir}/${plugin_name}"
+    log_info "Checking ${plugin_name}..."
+    
+    if [[ -d "$plugin_dir" ]]; then
+        # Directory exists, update it
+        if [[ "$DRY_RUN" == true ]]; then
+            log_dry "Would update $plugin_dir (git pull)"
+        else
+            log_info "Updating ${plugin_name}..."
+            if git -C "$plugin_dir" pull; then
+                log_ok "Updated ${plugin_name}"
+                increment_changes
+                ((plugins_updated++)) || true
+            else
+                log_warn "Failed to update ${plugin_name}"
+            fi
+        fi
+    else
+        # Directory does not exist, clone it
+        if [[ "$DRY_RUN" == true ]]; then
+            log_dry "Would clone https://github.com/zsh-users/${plugin_name}.git to $plugin_dir"
+        else
+            log_info "Cloning ${plugin_name}..."
+            if git clone https://github.com/zsh-users/${plugin_name}.git "$plugin_dir"; then
+                log_ok "Cloned ${plugin_name}"
+                increment_changes
+                ((plugins_cloned++)) || true
+            else
+                log_error "Failed to clone ${plugin_name}"
+            fi
+        fi
+    fi
+    
+    # -------------------------------------------------------------------------
+    # zsh-completions
+    # -------------------------------------------------------------------------
+    plugin_name="zsh-completions"
+    plugin_dir="${plugins_dir}/${plugin_name}"
+    log_info "Checking ${plugin_name}..."
+    
+    if [[ -d "$plugin_dir" ]]; then
+        # Directory exists, update it
+        if [[ "$DRY_RUN" == true ]]; then
+            log_dry "Would update $plugin_dir (git pull)"
+        else
+            log_info "Updating ${plugin_name}..."
+            if git -C "$plugin_dir" pull; then
+                log_ok "Updated ${plugin_name}"
+                increment_changes
+                ((plugins_updated++)) || true
+            else
+                log_warn "Failed to update ${plugin_name}"
+            fi
+        fi
+    else
+        # Directory does not exist, clone it
+        if [[ "$DRY_RUN" == true ]]; then
+            log_dry "Would clone https://github.com/zsh-users/${plugin_name}.git to $plugin_dir"
+        else
+            log_info "Cloning ${plugin_name}..."
+            if git clone https://github.com/zsh-users/${plugin_name}.git "$plugin_dir"; then
+                log_ok "Cloned ${plugin_name}"
+                increment_changes
+                ((plugins_cloned++)) || true
+            else
+                log_error "Failed to clone ${plugin_name}"
+            fi
+        fi
+    fi
+    
+    # Summary
+    if [[ "$DRY_RUN" == false ]]; then
+        if [[ $((plugins_cloned + plugins_updated)) -gt 0 ]]; then
+            log_ok "Plugins: $plugins_cloned cloned, $plugins_updated updated"
+        else
+            log_ok "All plugins up to date"
+        fi
+    fi
+    
+    return 0
+}
+
 parse_manifest() {
     log_info "Parsing manifest..."
     
@@ -803,6 +969,77 @@ clone_repos() {
     return 0
 }
 
+install_powerline_fonts() {
+    log_info "Installing powerline fonts..."
+    
+    # Skip if not on real $HOME
+    if ! is_real_home; then
+        log_skip "Powerline fonts installation (not on real \$HOME)"
+        return 0
+    fi
+    
+    # Define target directory
+    local fonts_dir="${TARGET_HOME}/.local/share/fonts"
+    local powerline_dir="${fonts_dir}/powerline-fonts"
+    
+    # Ensure fonts directory exists
+    ensure_dir "$fonts_dir"
+    
+    # Check if powerline fonts repo exists
+    if [[ -d "$powerline_dir" ]]; then
+        # Directory exists, optionally update
+        if [[ "$DRY_RUN" == true ]]; then
+            log_dry "Would update $powerline_dir (git pull)"
+        else
+            log_info "Updating powerline fonts repo..."
+            if git -C "$powerline_dir" pull; then
+                log_ok "Updated powerline fonts repo"
+                
+                # Run install script after update
+                if [[ -f "$powerline_dir/install.sh" ]]; then
+                    log_info "Running powerline fonts install.sh..."
+                    if bash "$powerline_dir/install.sh"; then
+                        log_ok "Powerline fonts installed/updated successfully"
+                        increment_changes
+                    else
+                        log_warn "Failed to run powerline fonts install.sh"
+                    fi
+                fi
+            else
+                log_warn "Failed to update powerline fonts repo"
+            fi
+        fi
+    else
+        # Directory does not exist, clone it
+        if [[ "$DRY_RUN" == true ]]; then
+            log_dry "Would clone https://github.com/powerline/fonts.git to $powerline_dir"
+            log_dry "Would run $powerline_dir/install.sh"
+        else
+            log_info "Cloning powerline fonts..."
+            if git clone --depth=1 https://github.com/powerline/fonts.git "$powerline_dir"; then
+                log_ok "Cloned powerline fonts repo"
+                
+                # Run installation script
+                if [[ -f "$powerline_dir/install.sh" ]]; then
+                    log_info "Running powerline fonts install.sh..."
+                    if bash "$powerline_dir/install.sh"; then
+                        log_ok "Powerline fonts installed successfully"
+                        increment_changes
+                    else
+                        log_warn "Failed to run powerline fonts install.sh"
+                    fi
+                else
+                    log_warn "install.sh not found in powerline fonts repo"
+                fi
+            else
+                log_error "Failed to clone powerline fonts"
+            fi
+        fi
+    fi
+    
+    return 0
+}
+
 validate_secrets() {
     log_info "Validating secrets..."
     
@@ -885,6 +1122,85 @@ validate_secrets() {
     return 0
 }
 
+setup_ssh_key() {
+    log_info "Setting up SSH key..."
+    
+    # Skip if not on real $HOME
+    if ! is_real_home; then
+        log_skip "SSH key generation (not on real \$HOME)"
+        return 0
+    fi
+    
+    # Define paths
+    local ssh_dir="${TARGET_HOME}/.ssh"
+    local ssh_key="${ssh_dir}/id_rsa"
+    
+    # Ensure .ssh directory exists with proper permissions
+    if [[ ! -d "$ssh_dir" ]]; then
+        if [[ "$DRY_RUN" == true ]]; then
+            log_dry "mkdir -p $ssh_dir"
+            log_dry "chmod 700 $ssh_dir"
+        else
+            mkdir -p "$ssh_dir"
+            chmod 700 "$ssh_dir"
+            log_info "Created .ssh directory with permissions 700"
+        fi
+    else
+        # Verify permissions are correct
+        if [[ "$DRY_RUN" == true ]]; then
+            log_dry "chmod 700 $ssh_dir"
+        else
+            chmod 700 "$ssh_dir"
+        fi
+    fi
+    
+    # Check if SSH key already exists
+    if [[ -f "$ssh_key" ]]; then
+        log_ok "SSH key already exists at $ssh_key"
+        return 0
+    fi
+    
+    # Key doesn't exist, generate it
+    if [[ "$DRY_RUN" == true ]]; then
+        log_dry "Would prompt for email address"
+        log_dry "Would generate SSH key: ssh-keygen -t rsa -b 4096 -C <email> -f $ssh_key -N \"\""
+        return 0
+    fi
+    
+    # Prompt for email address
+    local email=""
+    echo ""
+    echo "=========================================="
+    echo "SSH Key Generation"
+    echo "=========================================="
+    read -p "Enter your email address for SSH key: " email
+    
+    # Validate email is not empty
+    if [[ -z "$email" ]]; then
+        log_warn "No email provided, skipping SSH key generation"
+        return 0
+    fi
+    
+    # Generate SSH key
+    log_info "Generating SSH key..."
+    if ssh-keygen -t rsa -b 4096 -C "$email" -f "$ssh_key" -N ""; then
+        log_ok "SSH key generated successfully at $ssh_key"
+        log_info "Public key: ${ssh_key}.pub"
+        echo ""
+        log_info "To add this key to GitHub:"
+        log_info "  1. Copy your public key: pbcopy < ${ssh_key}.pub"
+        log_info "  2. Go to GitHub Settings > SSH and GPG keys"
+        log_info "  3. Click 'New SSH key' and paste your key"
+        echo ""
+        increment_changes
+    else
+        log_error "Failed to generate SSH key"
+        return 1
+    fi
+    
+    return 0
+}
+
 register_launchd() {
     log_info "Registering launchd job..."
     
@@ -956,12 +1272,15 @@ main() {
     
     # Run installation steps
     install_homebrew
+    install_oh_my_zsh
     parse_manifest
     create_symlinks
     process_brewfile
     install_cli_tools
     clone_repos
+    install_powerline_fonts
     validate_secrets
+    setup_ssh_key
     register_launchd
     
     # Summary

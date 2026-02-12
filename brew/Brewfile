@@ -16,6 +16,11 @@ brew "eza"               # Modern ls replacement
 brew "bat"               # Cat with syntax highlighting
 brew "podman"            # Container runtime (Docker alternative)
 brew "kubernetes-cli"    # kubectl
+brew "git-delta"         # Better git diff viewer
+brew "diff-so-fancy"     # Good-looking diffs for git
+brew "jq"                # JSON processor
+brew "fx"                # Terminal JSON viewer
+brew "wget"              # File retriever
 
 # ==============================================================================
 # Desktop Apps (Casks)
@@ -47,6 +52,7 @@ cask "antigravity"
 # Design
 cask "figma"
 
-# Other
+# Other/Utilities
 cask "granola"
 cask "1password"
+cask "clocker"           # Menu bar timezone tracker
