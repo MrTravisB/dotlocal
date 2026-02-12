@@ -1,0 +1,10 @@
+.DS_Store
+
+.local/*
+.local/mongo/*
+!.local/mongo
+!.local/mongo/js
+
+# dotlocal - machine-specific files
+local.toml
+.secrets

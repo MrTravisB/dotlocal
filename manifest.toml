@@ -1,0 +1,77 @@
+# manifest.toml
+#
+# This file defines the mapping from source files in this repository to their
+# target locations on the system. It is the single source of truth for all
+# configuration file deployments.
+#
+# Format:
+#   - Each entry uses TOML "array of tables" syntax: [[category]]
+#   - "source" is relative to the repository root
+#   - "target" supports tilde (~) expansion for the home directory
+#   - "mode" (optional) specifies how the file should be deployed:
+#       * "symlink" (default): Create a symbolic link from target to source
+#       * "copy": Copy the file/directory to the target location
+#
+# Example:
+#   [[shell]]
+#   source = "shell/.zshrc"
+#   target = "~/.zshrc"
+#   # mode defaults to "symlink"
+#
+#   [[fonts]]
+#   source = "fonts/FiraCode-Regular.ttf"
+#   target = "~/Library/Fonts/FiraCode-Regular.ttf"
+#   mode = "copy"
+#
+# Categories typically match directory names (shell, git, editor, etc.) but
+# this is convention, not a requirement.
+
+# =============================================================================
+# Shell Configuration
+# =============================================================================
+
+[[shell]]
+source = "shell/.zshrc"
+target = "~/.zshrc"
+
+[[shell]]
+source = "shell/travis.zsh"
+target = "~/.oh-my-zsh/custom/travis.zsh"
+
+# =============================================================================
+# Git Configuration
+# =============================================================================
+
+[[git]]
+source = "git/.gitconfig"
+target = "~/.gitconfig"
+
+[[git]]
+source = "git/.gitignore"
+target = "~/.gitignore"
+
+# =============================================================================
+# Vim Configuration
+# =============================================================================
+
+[[vim]]
+source = "vim/.vimrc"
+target = "~/.vimrc"
+
+# =============================================================================
+# Fonts (Copy Mode)
+# =============================================================================
+# Fonts should be copied rather than symlinked, as macOS expects them to be
+# real files in ~/Library/Fonts/.
+#
+# Example entries (uncomment and modify as needed):
+#
+# [[fonts]]
+# source = "fonts/FiraCode-Regular.ttf"
+# target = "~/Library/Fonts/FiraCode-Regular.ttf"
+# mode = "copy"
+#
+# [[fonts]]
+# source = "fonts/JetBrainsMono-Regular.ttf"
+# target = "~/Library/Fonts/JetBrainsMono-Regular.ttf"
+# mode = "copy"

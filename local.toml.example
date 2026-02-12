@@ -1,0 +1,56 @@
+# local.toml.example
+#
+# Copy this file to `local.toml` to customize dotlocal for this machine.
+# `local.toml` is gitignored and never committed.
+#
+# Use cases:
+# - Add machine-specific configs (work laptop, personal laptop, etc.)
+# - Skip entries from manifest.toml that don't apply here
+# - Skip specific apps from being installed
+#
+# Local entries are processed AFTER manifest.toml, so they extend or override.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Add New Entries
+# ─────────────────────────────────────────────────────────────────────────────
+# Use the same syntax as manifest.toml. These entries are appended to the
+# corresponding sections (shell, git, editor, etc.).
+#
+# Example: Add a work-specific alias file
+# [[shell]]
+# source = "shell/work-aliases.zsh"
+# target = "~/.oh-my-zsh/custom/work-aliases.zsh"
+#
+# Example: Add a machine-specific git config override
+# [[git]]
+# source = "git/.gitconfig.local"
+# target = "~/.gitconfig.local"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Skip Entries from manifest.toml
+# ─────────────────────────────────────────────────────────────────────────────
+# Use [[skip]] with a `source` field matching the entry you want to exclude.
+# The source path must match exactly as it appears in manifest.toml.
+#
+# Example: Skip iTerm2 config if you use Alacritty on this machine
+# [[skip]]
+# source = "terminal/iterm2.plist"
+#
+# Example: Skip a specific editor config
+# [[skip]]
+# source = "editor/vscode/settings.json"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Skip Apps from Installation
+# ─────────────────────────────────────────────────────────────────────────────
+# Use the [apps] section with a `skip` array to exclude specific apps from
+# being installed via Homebrew, Mac App Store, or other mechanisms.
+# App names should match the identifiers used in Brewfile or install scripts.
+#
+# Example: Skip Slack and Discord on a personal machine
+# [apps]
+# skip = ["slack", "discord"]
+#
+# Example: Skip development tools not needed on this machine
+# [apps]
+# skip = ["docker", "postgres", "redis"]
