@@ -26,6 +26,7 @@ DRY_RUN=false
 CHANGES_MADE=0
 BACKUP_DIR=""
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+SECRETS_NEED_ATTENTION=false
 
 # Manifest data structures
 declare -a MANIFEST_SOURCES
@@ -1073,13 +1074,25 @@ validate_secrets() {
     
     local secrets_file="${REPO_DIR}/.secrets"
     local secrets_example="${REPO_DIR}/.secrets.example"
+    local target_secrets="${TARGET_HOME}/.secrets"
     
     # Check if .secrets file exists
     if [[ ! -f "$secrets_file" ]]; then
-        log_warn ".secrets file not found"
+        log_warn ".secrets file not found in repository"
+        
+        # Check if .secrets.example exists
         if [[ -f "$secrets_example" ]]; then
-            log_warn "Copy .secrets.example to .secrets and fill in your values:"
-            log_warn "  cp $secrets_example $secrets_file"
+            # Copy .secrets.example to TARGET_HOME/.secrets
+            if [[ "$DRY_RUN" == true ]]; then
+                log_dry "Would copy $secrets_example to $target_secrets"
+            else
+                cp "$secrets_example" "$target_secrets"
+                log_info "Copied .secrets.example to $target_secrets"
+                SECRETS_NEED_ATTENTION=true
+                increment_changes
+            fi
+        else
+            log_warn ".secrets.example not found - cannot create .secrets template"
         fi
         return 0
     fi
@@ -1339,6 +1352,13 @@ main() {
         log_info "To apply changes to your current shell, run:"
         log_info "  source ~/.zshrc"
         log_info "Or start a new terminal session."
+    fi
+    
+    # Remind user to fill in secrets if they were created from template
+    if [[ "$SECRETS_NEED_ATTENTION" == true ]]; then
+        echo ""
+        log_warn "ACTION REQUIRED: ~/.secrets was created from template."
+        log_warn "Edit ~/.secrets and fill in your API keys and credentials."
     fi
     
     echo "=========================================="
