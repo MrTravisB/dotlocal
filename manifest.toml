@@ -74,6 +74,15 @@ target = "~/Library/Application Support/Antigravity/User/settings.json"
 source = "editor/antigravity/keybindings.json"
 target = "~/Library/Application Support/Antigravity/User/keybindings.json"
 
+# VS Code Insiders (reuses Antigravity config)
+[[editor]]
+source = "editor/antigravity/settings.json"
+target = "~/Library/Application Support/Code - Insiders/User/settings.json"
+
+[[editor]]
+source = "editor/antigravity/keybindings.json"
+target = "~/Library/Application Support/Code - Insiders/User/keybindings.json"
+
 # =============================================================================
 # Terminal Configuration
 # =============================================================================
