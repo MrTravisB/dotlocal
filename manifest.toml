@@ -63,6 +63,18 @@ source = "vim/.vimrc"
 target = "~/.vimrc"
 
 # =============================================================================
+# Editor Configuration (Antigravity / VS Code)
+# =============================================================================
+
+[[editor]]
+source = "editor/antigravity/settings.json"
+target = "~/Library/Application Support/Antigravity/User/settings.json"
+
+[[editor]]
+source = "editor/antigravity/keybindings.json"
+target = "~/Library/Application Support/Antigravity/User/keybindings.json"
+
+# =============================================================================
 # Fonts (Copy Mode - Directory)
 # =============================================================================
 # Fonts are copied (not symlinked) to ~/Library/Fonts/ because macOS expects

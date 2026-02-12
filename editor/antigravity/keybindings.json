@@ -1,0 +1,76 @@
+// Place your key bindings in this file to override the defaults
+[
+    { "key": "cmd+k", "command": "workbench.action.terminal.clear", "when": "terminalFocus"},
+    { "key": "shift+cmd+;",           "command": "workbench.files.action.focusFilesExplorer" },
+    { "key": "cmd+r",                 "command": "workbench.action.gotoSymbol" },
+    { "key": "cmd+l",                 "command": "workbench.action.gotoLine" },
+    { "key": "cmd+t",                 "command": "workbench.action.quickOpen" },
+    { "key": "ctrl+cmd+right",        "command": "workbench.action.terminal.focusNextPane",
+      "when": "terminalFocus" },
+    { "key": "ctrl+cmd+left",         "command": "workbench.action.terminal.focusNextPane",
+      "when": "terminalFocus" },
+    { "key": "ctrl+shift+cmd+right",  "command": "workbench.action.terminal.focusNext",
+      "when": "terminalFocus" },
+    { "key": "ctrl+shift+cmd+right",  "command": "workbench.action.terminal.focusPrevious",
+      "when": "terminalFocus" },
+    { "key": "alt+n",                 "command": "workbench.action.terminal.new" },
+    { "key": "cmd+w",                 "command": "workbench.action.terminal.kill",
+      "when": "terminalFocus" },
+    { "key": "shift+cmd+'",           "command": "workbench.action.terminal.toggleTerminal" },
+    { "key": "shift+cmd+`",           "command": "workbench.action.togglePanel" },
+
+    { "key": "shift+cmd+=", "command": "editor.action.insertCursorAtEndOfEachLineSelected",
+      "when": "editorTextFocus" },
+
+    { "key": "cmd+n", "command": "explorer.newFile",
+      "when": "filesExplorerFocus" },
+
+    { "key": "escape", "command": "closeParameterHints",
+      "when": "editorTextFocus && parameterHintsVisible" },
+
+    { "key": "escape", "command": "hideSuggestWidget",
+      "when": "suggestWidgetVisible && textInputFocus" },
+
+      {
+        "key": "ctrl+down",
+        "command": "cursorMove",
+        "when": "editorTextFocus",
+        "args": {
+            "to": "nextBlankLine",
+            "by": "wrappedLine"
+        }
+    },
+    {
+        "key": "ctrl+up",
+        "command": "cursorMove",
+        "when": "editorTextFocus",
+        "args": {
+            "to": "prevBlankLine",
+            "by": "wrappedLine"
+        }
+    },
+    {
+      "key": "shift+cmd+/",
+      "command": "composer.newAgentChat"
+    },
+    {
+      "key": "cmd+i",
+      "command": "composerMode.agent"
+    },
+    {
+      "key": "cmd+i",
+      "command": "composerMode.agent"
+    },
+    {
+      "key": "cmd+i",
+      "command": "composerMode.agent"
+    },
+    {
+        "key": "shift+enter",
+        "command": "workbench.action.terminal.sendSequence",
+        "args": {
+            "text": "\u001b\r"
+        },
+        "when": "terminalFocus"
+    },
+  ]
