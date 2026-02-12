@@ -1295,6 +1295,59 @@ register_launchd() {
     return 0
 }
 
+print_manual_install_reminder() {
+    # Check if terminal supports colors (is a tty)
+    local use_color=false
+    if [[ -t 1 ]]; then
+        use_color=true
+    fi
+    
+    # ANSI color codes
+    local YELLOW=""
+    local BOLD=""
+    local RESET=""
+    
+    if [[ "$use_color" == true ]]; then
+        YELLOW="\033[33m"
+        BOLD="\033[1m"
+        RESET="\033[0m"
+    fi
+    
+    echo ""
+    echo -e "${YELLOW}${BOLD}╔══════════════════════════════════════════════════════════════════════════════╗${RESET}"
+    echo -e "${YELLOW}${BOLD}║                         MANUAL STEPS REQUIRED                                ║${RESET}"
+    echo -e "${YELLOW}${BOLD}╠══════════════════════════════════════════════════════════════════════════════╣${RESET}"
+    
+    # Print Chrome Apps section
+    local chrome_apps_file="${REPO_DIR}/browser/chrome-apps.txt"
+    if [[ -f "$chrome_apps_file" ]]; then
+        echo -e "${YELLOW}${BOLD}║${RESET} ${BOLD}Chrome Apps${RESET} (open in Chrome, then install as app):                       ${YELLOW}${BOLD}║${RESET}"
+        echo -e "${YELLOW}${BOLD}║${RESET}   How to install: Menu (⋮) → Cast, save, and share → Install page as app  ${YELLOW}${BOLD}║${RESET}"
+        echo -e "${YELLOW}${BOLD}║${RESET}                                                                              ${YELLOW}${BOLD}║${RESET}"
+        
+        while IFS='|' read -r app_name app_url; do
+            # Format with proper spacing (pad to 78 chars total width)
+            local line="   • ${app_name}"
+            local padding=$(( 78 - ${#line} ))
+            printf "${YELLOW}${BOLD}║${RESET} %-76s ${YELLOW}${BOLD}║${RESET}\n" "$line"
+            
+            line="     ${app_url}"
+            printf "${YELLOW}${BOLD}║${RESET} %-76s ${YELLOW}${BOLD}║${RESET}\n" "$line"
+        done < "$chrome_apps_file"
+    fi
+    
+    echo -e "${YELLOW}${BOLD}║${RESET}                                                                              ${YELLOW}${BOLD}║${RESET}"
+    echo -e "${YELLOW}${BOLD}╠══════════════════════════════════════════════════════════════════════════════╣${RESET}"
+    
+    # Print other manual installs
+    echo -e "${YELLOW}${BOLD}║${RESET} ${BOLD}Other Manual Installs:${RESET}                                                       ${YELLOW}${BOLD}║${RESET}"
+    echo -e "${YELLOW}${BOLD}║${RESET}   • CleanMyMac                                                             ${YELLOW}${BOLD}║${RESET}"
+    echo -e "${YELLOW}${BOLD}║${RESET}     https://macpaw.com/cleanmymac                                           ${YELLOW}${BOLD}║${RESET}"
+    
+    echo -e "${YELLOW}${BOLD}╚══════════════════════════════════════════════════════════════════════════════╝${RESET}"
+    echo ""
+}
+
 # ------------------------------------------------------------------------------
 # Main
 # ------------------------------------------------------------------------------
@@ -1362,6 +1415,9 @@ main() {
     fi
     
     echo "=========================================="
+    
+    # Print manual install reminder (MUST be last)
+    print_manual_install_reminder
     
     # Determine exit code
     # 0 = success, 2 = partial success (if there were warnings)
