@@ -914,13 +914,13 @@ register_launchd() {
     
     # Copy plist to LaunchAgents
     if [[ "$DRY_RUN" == true ]]; then
-        log_dry "cp $plist_source $plist_target"
+        log_dry "sed 's|__HOME__|$TARGET_HOME|g' $plist_source > $plist_target"
         log_dry "launchctl unload $plist_target 2>/dev/null || true"
         log_dry "launchctl load $plist_target"
     else
-        # Copy the plist
-        cp "$plist_source" "$plist_target"
-        log_info "Copied plist to $plist_target"
+        # Copy the plist and replace __HOME__ placeholder with actual home directory
+        sed "s|__HOME__|${TARGET_HOME}|g" "$plist_source" > "$plist_target"
+        log_info "Copied plist to $plist_target (replaced __HOME__ with ${TARGET_HOME})"
         
         # Unload if already loaded (suppress errors if not loaded)
         launchctl unload "$plist_target" 2>/dev/null || true
