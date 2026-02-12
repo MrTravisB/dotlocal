@@ -1,93 +1,156 @@
+# ==============================================================================
+# travis.zsh - Personal Shell Customizations
+# ==============================================================================
+# This file contains aliases, functions, PATH modifications, and environment
+# variables. It is sourced by oh-my-zsh as a custom plugin.
+#
+# Secrets (API keys, passwords, tokens) should NOT be in this file.
+# Put them in ~/.secrets instead.
+# ==============================================================================
 
-#################################
-# git helpers
+# ==============================================================================
+# PATH Configuration
+# ==============================================================================
+# Consolidated PATH exports. Order matters: earlier entries take precedence.
 
-grmbr() {
-    git branch -D "$1";
-    git push origin --delete "$1";
-}
+# Local binaries
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/go/bin:$PATH"
+export PATH="$HOME/.npm-global/bin:$PATH"
 
-parse_git_branch() {
-    git_branch=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`;
-    echo $git_branch
-}
+# Project-local node modules
+export PATH="./node_modules/.bin:$PATH"
 
-git_commit_branch() {
-    BR=`parse_git_branch`
-    if [[ "$BR" == "master" || "$BR" == "main" ]]; then
-        BR="";
-    else
-        BR="$BR ";
-    fi
-    echo $BR;
-}
+# Homebrew (Apple Silicon and Intel)
+export PATH="/opt/homebrew/bin:/opt/bin:/usr/local/bin:$PATH"
 
-# end git helpers
-#################################
+# Go
+export PATH="/usr/local/go/bin:$PATH"
 
-#mkdir and cd
-function mkcd() { mkdir -p "$@" && cd "$_"; }
+# Database clients (optional, via Homebrew)
+export PATH="$PATH:/opt/homebrew/opt/mysql-client/bin"
+export PATH="$PATH:/opt/homebrew/opt/postgresql@16/bin"
+
+# Tool-specific paths (added by installers)
+export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
+export PATH="$HOME/.opencode/bin:$PATH"
+export PATH="$HOME/.bun/bin:$PATH"
+
+# ==============================================================================
+# Environment Variables
+# ==============================================================================
+
+export WORKSPACE="$HOME/workspace"
+export EDITOR="vim"
+export CLICOLOR="xterm-color"
+export BUN_INSTALL="$HOME/.bun"
+export JAVA_HOME=$(/usr/libexec/java_home 2>/dev/null)
+
+# Disable oh-my-zsh compfix warnings
+export ZSH_DISABLE_COMPFIX=true
+
+# Kubernetes
+export KUBECTX_IGNORE_FZF=1
+
+# ==============================================================================
+# Shell Options
+# ==============================================================================
+
+unsetopt share_history      # Don't share history between sessions
+setopt APPEND_HISTORY       # Append to history file, don't overwrite
+
+# ==============================================================================
+# Aliases: Git
+# ==============================================================================
 
 alias g='git'
-alias gp='g push origin $(parse_git_branch)'
-alias gb='g br'
-alias gs='g st'
-alias gd='g d'
-alias gl='g l'
-alias gcm='g cm'
+alias gp='git push origin $(git branch --show-current)'
+alias gb='git branch'
+alias gs='git status'
+alias gd='git diff'
+alias gl='git log --oneline -20'
+alias gcm='git commit -m'
 
-alias base='g rebase -i ${1}'
-alias cont='g rebase --continue'
-alias abort='g rebase --abort'
+alias base='git rebase -i'
+alias cont='git rebase --continue'
+alias abort='git rebase --abort'
 
-alias tf='terraform'
-# alias k='kubectl'
-# alias kx='kubectx'
+# Delete branch locally and on remote
+grmbr() {
+    git branch -D "$1"
+    git push origin --delete "$1"
+}
+
+# ==============================================================================
+# Aliases: Docker & Kubernetes
+# ==============================================================================
+
 alias d='docker'
 alias p='podman'
-alias mk='minikube'
 alias k='kubectl'
-alias op='operator-sdk'
+alias mk='minikube'
+alias tf='terraform'
 
-alias _s='source ~/.zshrc'
+# ==============================================================================
+# Aliases: File Operations
+# ==============================================================================
 
-alias ls='exa -lah -t modified --git --time-style long-iso'
-alias ls-t='exa -lh -t modified --git --time-style long-iso --tree'
+alias ls='eza -lah -t modified --git --time-style long-iso'
+alias ls-t='eza -lh -t modified --git --time-style long-iso --tree'
 alias cat='bat'
 alias ccat='/bin/cat'
 alias rmf='rm -rf'
 
-alias mgo='# TODO: add MongoDB alias to .secrets'
-alias tau='. _tau'
+# ==============================================================================
+# Aliases: Shell Management
+# ==============================================================================
 
-export WORKSPACE=~/workspace
-export TAU_WORKSPACE=$WORKSPACE/acolyte/tau
+alias _s='source ~/.zshrc'
 
-export PATH=./node_modules/.bin:$PATH
-export PATH=/opt/bin:/opt/homebrew/bin:$PATH
-export PATH=$HOME/go/bin:$PATH
-export PATH=/usr/local/go/bin:$PATH
-export PATH=/usr/local/bin:$PATH
-export PATH=$HOME/workspace/acolyte/dev/bin:$PATH
-export PATH=$HOME/.local/bin:$PATH
-export PATH=$PATH:/opt/homebrew/opt/mysql-client/bin
-export PATH=$PATH:/opt/homebrew/opt/postgresql@16/bin
-export PATH=~/.npm-global/bin:$PATH
+# ==============================================================================
+# Functions
+# ==============================================================================
 
-export ZSH_DISABLE_COMPFIX=true
-export EDITOR="vim"
-export CLICOLOR="xterm-color"
-export DISPLAY=:0.0
+# mkdir and cd into it
+mkcd() { mkdir -p "$@" && cd "$_"; }
 
-export JAVA_HOME=$(/usr/libexec/java_home)
+# BigTable emulator helper
+bt() {
+    BIGTABLE_EMULATOR_HOST=localhost:9035 cbt -creds=1 "$@"
+}
 
-unsetopt share_history
-setopt APPEND_HISTORY
+# ==============================================================================
+# Completions & Tool Integrations
+# ==============================================================================
 
-# make grep highlight results using color
-export GREP_OPTIONS='--color=auto'
+# Google Cloud SDK
+if [[ -f '/opt/google-cloud-sdk/path.zsh.inc' ]]; then
+    source '/opt/google-cloud-sdk/path.zsh.inc'
+fi
+if [[ -f '/opt/google-cloud-sdk/completion.zsh.inc' ]]; then
+    source '/opt/google-cloud-sdk/completion.zsh.inc'
+fi
 
-# Add some colour to LESS/MAN pages
+# Bun completions
+[[ -s "$HOME/.bun/_bun" ]] && source "$HOME/.bun/_bun"
+
+# Zoxide (smart cd)
+command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
+
+# Custom completions
+fpath=(~/.zsh/completions $fpath)
+autoload -U compinit && compinit
+
+# ==============================================================================
+# Terminal Integration
+# ==============================================================================
+
+# iTerm2: Set tab title to current directory name
+if [[ -n "$ITERM_SESSION_ID" ]]; then
+    export PROMPT_COMMAND='echo -ne "\033];${PWD##*/}\007"'
+fi
+
+# Colored man pages
 export LESS_TERMCAP_mb=$'\E[01;31m'
 export LESS_TERMCAP_md=$'\E[01;33m'
 export LESS_TERMCAP_me=$'\E[0m'
@@ -95,53 +158,3 @@ export LESS_TERMCAP_se=$'\E[0m'
 export LESS_TERMCAP_so=$'\E[01;42;30m'
 export LESS_TERMCAP_ue=$'\E[0m'
 export LESS_TERMCAP_us=$'\E[01;36m'
-
-export KUBECTX_IGNORE_FZF=1
-
-export LANGFUSE_SECRET_KEY=""
-export LANGFUSE_PUBLIC_KEY=""
-export LANGFUSE_BASEURL="http://localhost:6543"
-
-GCP_ZSH_PATH='/opt/google-cloud-sdk/path.zsh.inc'
-GCP_ZSH_COMPLETION='/opt/google-cloud-sdk/completion.zsh.inc'
-[ -f $GCP_ZSH_PATH ] && source $GCP_ZSH_PATH
-[ -f $GCP_ZSH_COMPLETION ] && source $GCP_ZSH_COMPLETION
-
-[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
-
-fpath=(~/.zsh/completions $fpath)
-autoload -U compinit && compinit
-
-if [ $ITERM_SESSION_ID ]; then
-  export PROMPT_COMMAND='echo -ne "\033];${PWD##*/}\007"; ':"$PROMPT_COMMAND";
-fi
-
-bt() {
-	BIGTABLE_EMULATOR_HOST=localhost:9035 cbt -creds=1 $@
-}
-
-#compdef gt
-###-begin-gt-completions-###
-#
-# yargs command completion script
-#
-# Installation: gt completion >> ~/.zshrc
-#    or gt completion >> ~/.zprofile on OSX.
-#
-_gt_yargs_completions()
-{
-  local reply
-  local si=$IFS
-  IFS=$'
-' reply=($(COMP_CWORD="$((CURRENT-1))" COMP_LINE="$BUFFER" COMP_POINT="$CURSOR" gt --get-yargs-completions "${words[@]}"))
-  IFS=$si
-  _describe 'values' reply
-}
-compdef _gt_yargs_completions gt
-###-end-gt-completions-###
-
-export PYENV_ROOT="$HOME/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
-
-
