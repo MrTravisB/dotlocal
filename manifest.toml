@@ -75,6 +75,14 @@ source = "editor/antigravity/keybindings.json"
 target = "~/Library/Application Support/Antigravity/User/keybindings.json"
 
 # =============================================================================
+# Terminal Configuration
+# =============================================================================
+
+[[terminal]]
+source = "terminal/ghostty/config"
+target = "~/.config/ghostty/config"
+
+# =============================================================================
 # Fonts (Copy Mode - Directory)
 # =============================================================================
 # Fonts are copied (not symlinked) to ~/Library/Fonts/ because macOS expects
