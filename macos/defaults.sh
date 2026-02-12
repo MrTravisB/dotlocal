@@ -126,6 +126,24 @@ apply_setting "com.apple.AppleMultitouchTrackpad" "TrackpadPinch" "-bool" "true"
 apply_setting "com.apple.AppleMultitouchTrackpad" "TrackpadRotate" "-bool" "true"
 
 # ============================================================================
+# Screenshots
+# ============================================================================
+
+log "Configuring Screenshots..."
+
+# Create screenshots directory
+SCREENSHOT_DIR="$HOME/Downloads/screenshots"
+if [ "$DRY_RUN" = false ]; then
+  mkdir -p "$SCREENSHOT_DIR"
+  log "Created screenshot directory: $SCREENSHOT_DIR"
+else
+  log "Would create directory: $SCREENSHOT_DIR"
+fi
+
+# Set screenshot location
+apply_setting "com.apple.screencapture" "location" "-string" "$SCREENSHOT_DIR"
+
+# ============================================================================
 # Global Settings
 # ============================================================================
 
