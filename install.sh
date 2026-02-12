@@ -28,11 +28,11 @@ BACKUP_DIR=""
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 
 # Manifest data structures
-MANIFEST_SOURCES=()
-MANIFEST_TARGETS=()
-MANIFEST_MODES=()
-SKIP_SOURCES=()
-SKIP_APPS=()
+declare -a MANIFEST_SOURCES
+declare -a MANIFEST_TARGETS
+declare -a MANIFEST_MODES
+declare -a SKIP_SOURCES
+declare -a SKIP_APPS
 
 # ------------------------------------------------------------------------------
 # Logging functions
@@ -133,7 +133,8 @@ increment_changes() {
 
 is_skipped() {
     local source="$1"
-    for skip_src in "${SKIP_SOURCES[@]}"; do
+    # Safe array iteration: handle empty arrays
+    for skip_src in ${SKIP_SOURCES[@]+"${SKIP_SOURCES[@]}"}; do
         if [[ "$source" == "$skip_src" ]]; then
             return 0
         fi
@@ -143,7 +144,8 @@ is_skipped() {
 
 is_app_skipped() {
     local app="$1"
-    for skip_app in "${SKIP_APPS[@]}"; do
+    # Safe array iteration: handle empty arrays
+    for skip_app in ${SKIP_APPS[@]+"${SKIP_APPS[@]}"}; do
         if [[ "$app" == "$skip_app" ]]; then
             return 0
         fi
@@ -244,10 +246,10 @@ parse_manifest() {
     fi
     
     log_ok "Parsed ${#MANIFEST_SOURCES[@]} manifest entries"
-    if [[ ${#SKIP_SOURCES[@]} -gt 0 ]]; then
+    if [[ ${#SKIP_SOURCES[@]:-0} -gt 0 ]]; then
         log_info "Skipping ${#SKIP_SOURCES[@]} entries from manifest"
     fi
-    if [[ ${#SKIP_APPS[@]} -gt 0 ]]; then
+    if [[ ${#SKIP_APPS[@]:-0} -gt 0 ]]; then
         log_info "Skipping ${#SKIP_APPS[@]} apps from installation"
     fi
 }
@@ -531,7 +533,7 @@ process_brewfile() {
     local temp_brewfile=""
     
     # If we have apps to skip, create a temporary Brewfile
-    if [[ ${#SKIP_APPS[@]} -gt 0 ]]; then
+    if [[ ${#SKIP_APPS[@]:-0} -gt 0 ]]; then
         log_info "Creating temporary Brewfile with ${#SKIP_APPS[@]} apps skipped"
         temp_brewfile="${REPO_DIR}/.brewfile.tmp"
         
