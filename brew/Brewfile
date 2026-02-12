@@ -46,6 +46,7 @@ cask "zoom"
 cask "ghostty"
 cask "iterm2"
 cask "docker-desktop"
+cask "visual-studio-code@insiders"
 cask "claude"
 cask "antigravity"
 

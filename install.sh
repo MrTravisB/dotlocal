@@ -1242,6 +1242,46 @@ setup_ssh_key() {
     return 0
 }
 
+configure_screenshot_location() {
+    log_info "Configuring screenshot location..."
+    
+    # Skip if not on real $HOME
+    if ! is_real_home; then
+        log_skip "Screenshot configuration (not on real \$HOME)"
+        return 0
+    fi
+    
+    # Define screenshot directory
+    local screenshot_dir="${TARGET_HOME}/Downloads/screenshots"
+    
+    # Create directory
+    if [[ "$DRY_RUN" == true ]]; then
+        log_dry "mkdir -p $screenshot_dir"
+        log_dry "defaults write com.apple.screencapture location $screenshot_dir"
+        log_dry "killall SystemUIServer"
+    else
+        # Create directory if it doesn't exist
+        if [[ ! -d "$screenshot_dir" ]]; then
+            mkdir -p "$screenshot_dir"
+            log_info "Created screenshot directory: $screenshot_dir"
+            increment_changes
+        else
+            log_ok "Screenshot directory already exists: $screenshot_dir"
+        fi
+        
+        # Set screenshot location
+        defaults write com.apple.screencapture location "$screenshot_dir"
+        log_info "Set screenshot location to: $screenshot_dir"
+        
+        # Restart SystemUIServer to apply changes
+        killall SystemUIServer
+        log_ok "Restarted SystemUIServer to apply screenshot settings"
+        increment_changes
+    fi
+    
+    return 0
+}
+
 register_launchd() {
     log_info "Registering launchd job..."
     
@@ -1375,6 +1415,7 @@ main() {
     install_powerline_fonts
     validate_secrets
     setup_ssh_key
+    configure_screenshot_location
     register_launchd
     
     # Summary
