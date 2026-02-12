@@ -44,7 +44,11 @@ export WORKSPACE="$HOME/workspace"
 export EDITOR="vim"
 export CLICOLOR="xterm-color"
 export BUN_INSTALL="$HOME/.bun"
-export JAVA_HOME=$(/usr/libexec/java_home 2>/dev/null)
+
+# Set JAVA_HOME only if Java is installed
+if /usr/libexec/java_home &>/dev/null; then
+    export JAVA_HOME=$(/usr/libexec/java_home)
+fi
 
 # Disable oh-my-zsh compfix warnings
 export ZSH_DISABLE_COMPFIX=true
@@ -137,17 +141,15 @@ fi
 # Zoxide (smart cd)
 command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
 
-# Custom completions
-fpath=(~/.zsh/completions $fpath)
-autoload -U compinit && compinit
-
 # ==============================================================================
 # Terminal Integration
 # ==============================================================================
 
 # iTerm2: Set tab title to current directory name
 if [[ -n "$ITERM_SESSION_ID" ]]; then
-    export PROMPT_COMMAND='echo -ne "\033];${PWD##*/}\007"'
+    precmd() {
+        echo -ne "\033];${PWD##*/}\007"
+    }
 fi
 
 # Colored man pages

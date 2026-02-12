@@ -39,8 +39,9 @@ zstyle ':completion:*:*:docker-*:*' option-stacking yes
 # Hide username in prompt when logged in as default user
 export DEFAULT_USER=$(whoami)
 
+# Source secrets (API keys, tokens, etc.) if present
+# This must be sourced BEFORE oh-my-zsh so plugins can access secrets
+[[ -f "$HOME/.secrets" ]] && source "$HOME/.secrets"
+
 # Initialize oh-my-zsh
 source $ZSH/oh-my-zsh.sh
-
-# Source secrets (API keys, tokens, etc.) if present
-[[ -f "$HOME/.secrets" ]] && source "$HOME/.secrets"
