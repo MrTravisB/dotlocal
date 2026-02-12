@@ -1,0 +1,52 @@
+# Brewfile
+# Install with: brew bundle --file=brew/Brewfile
+
+# ==============================================================================
+# Taps
+# ==============================================================================
+# (none required for current packages)
+
+# ==============================================================================
+# CLI Tools (Formulae)
+# ==============================================================================
+brew "node"              # JavaScript runtime
+brew "go"                # Go programming language
+brew "zoxide"            # Smarter cd command
+brew "eza"               # Modern ls replacement
+brew "bat"               # Cat with syntax highlighting
+brew "podman"            # Container runtime (Docker alternative)
+brew "kubernetes-cli"    # kubectl
+
+# ==============================================================================
+# Desktop Apps (Casks)
+# ==============================================================================
+# Browsers
+cask "google-chrome"
+cask "firefox@nightly"
+
+# Productivity
+cask "notion"
+cask "notion-calendar"
+cask "linear-linear"
+cask "rectangle"
+cask "stay"
+
+# Communication
+cask "slack"
+cask "discord"
+cask "whatsapp"
+cask "zoom"
+
+# Development
+cask "ghostty"
+cask "iterm2"
+cask "docker-desktop"
+cask "claude"
+cask "antigravity"
+
+# Design
+cask "figma"
+
+# Other
+cask "granola"
+cask "1password"
