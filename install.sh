@@ -1335,6 +1335,188 @@ register_launchd() {
     return 0
 }
 
+patch_vscode_insiders_product_json() {
+    log_info "Patching VS Code Insiders product.json for OpenVSX..."
+    
+    # Skip if not on real $HOME
+    if ! is_real_home; then
+        log_skip "VS Code Insiders product.json patching (not on real \$HOME)"
+        return 0
+    fi
+    
+    # Define path to VS Code Insiders product.json
+    local product_json="/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/product.json"
+    
+    # Check if VS Code Insiders is installed
+    if [[ ! -f "$product_json" ]]; then
+        log_skip "VS Code Insiders product.json not found (app not installed)"
+        return 0
+    fi
+    
+    # Dry-run mode
+    if [[ "$DRY_RUN" == true ]]; then
+        log_dry "Would patch $product_json to add OpenVSX configuration"
+        return 0
+    fi
+    
+    # Check if jq is available
+    if ! command -v jq &> /dev/null; then
+        log_error "jq is required to patch product.json but is not installed"
+        return 1
+    fi
+    
+    # Create backup of product.json
+    local backup_file="${product_json}.backup.$(date +%Y%m%d_%H%M%S)"
+    if ! cp "$product_json" "$backup_file"; then
+        log_error "Failed to create backup of product.json"
+        return 1
+    fi
+    log_info "Created backup: $backup_file"
+    
+    # Patch the JSON file with OpenVSX configuration
+    local temp_json="${product_json}.tmp"
+    if jq '.extensionsGallery = {
+        "serviceUrl": "https://open-vsx.org/vscode/gallery",
+        "itemUrl": "https://open-vsx.org/vscode/item"
+    } | .linkProtectionTrustedDomains = (.linkProtectionTrustedDomains // [] | if (. | index("https://open-vsx.org")) then . else . + ["https://open-vsx.org"] end)' "$product_json" > "$temp_json"; then
+        # Replace original file
+        if mv "$temp_json" "$product_json"; then
+            log_ok "Patched VS Code Insiders product.json for OpenVSX"
+            increment_changes
+            return 0
+        else
+            log_error "Failed to replace product.json"
+            rm -f "$temp_json"
+            return 1
+        fi
+    else
+        log_error "Failed to patch product.json with jq"
+        rm -f "$temp_json"
+        return 1
+    fi
+}
+
+install_editor_extensions() {
+    log_info "Installing editor extensions..."
+    
+    # Skip if not on real $HOME
+    if ! is_real_home; then
+        log_skip "Editor extensions installation (not on real \$HOME)"
+        return 0
+    fi
+    
+    # Define paths
+    local extensions_file="${REPO_DIR}/editor/extensions.txt"
+    local antigravity_bin="/Users/t/.antigravity/antigravity/bin/antigravity"
+    local vscode_insiders_bin="/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/bin/code"
+    
+    # Check if extensions file exists
+    if [[ ! -f "$extensions_file" ]]; then
+        log_warn "Extensions file not found at $extensions_file (skipping)"
+        return 0
+    fi
+    
+    # Check which editors are installed
+    local antigravity_available=false
+    local vscode_insiders_available=false
+    
+    if [[ -x "$antigravity_bin" ]]; then
+        antigravity_available=true
+        log_info "Antigravity detected"
+    else
+        log_skip "Antigravity not found at $antigravity_bin"
+    fi
+    
+    if [[ -x "$vscode_insiders_bin" ]]; then
+        vscode_insiders_available=true
+        log_info "VS Code Insiders detected"
+    else
+        log_skip "VS Code Insiders not found"
+    fi
+    
+    # If neither editor is available, skip
+    if [[ "$antigravity_available" == false && "$vscode_insiders_available" == false ]]; then
+        log_skip "No compatible editors found"
+        return 0
+    fi
+    
+    # Count extensions
+    local total_extensions=0
+    while IFS= read -r extension_id; do
+        # Skip empty lines and comments
+        if [[ -z "$extension_id" || "$extension_id" =~ ^[[:space:]]*# ]]; then
+            continue
+        fi
+        ((total_extensions++)) || true
+    done < "$extensions_file"
+    
+    log_info "Found $total_extensions extensions to install"
+    
+    # Dry-run mode
+    if [[ "$DRY_RUN" == true ]]; then
+        while IFS= read -r extension_id; do
+            # Skip empty lines and comments
+            if [[ -z "$extension_id" || "$extension_id" =~ ^[[:space:]]*# ]]; then
+                continue
+            fi
+            
+            if [[ "$antigravity_available" == true ]]; then
+                log_dry "Would run: $antigravity_bin --install-extension $extension_id"
+            fi
+            
+            if [[ "$vscode_insiders_available" == true ]]; then
+                log_dry "Would run: $vscode_insiders_bin --install-extension $extension_id"
+            fi
+        done < "$extensions_file"
+        return 0
+    fi
+    
+    # Install extensions
+    local installed_count=0
+    local skipped_count=0
+    local current=0
+    
+    while IFS= read -r extension_id; do
+        # Skip empty lines and comments
+        if [[ -z "$extension_id" || "$extension_id" =~ ^[[:space:]]*# ]]; then
+            continue
+        fi
+        
+        ((current++)) || true
+        log_info "[$current/$total_extensions] Installing $extension_id..."
+        
+        # Install to Antigravity
+        if [[ "$antigravity_available" == true ]]; then
+            if "$antigravity_bin" --install-extension "$extension_id" &> /dev/null; then
+                log_ok "  → Antigravity: installed"
+                ((installed_count++)) || true
+            else
+                log_warn "  → Antigravity: failed or already installed"
+                ((skipped_count++)) || true
+            fi
+        fi
+        
+        # Install to VS Code Insiders
+        if [[ "$vscode_insiders_available" == true ]]; then
+            if "$vscode_insiders_bin" --install-extension "$extension_id" &> /dev/null; then
+                log_ok "  → VS Code Insiders: installed"
+                ((installed_count++)) || true
+            else
+                log_warn "  → VS Code Insiders: failed or already installed"
+                ((skipped_count++)) || true
+            fi
+        fi
+    done < "$extensions_file"
+    
+    log_ok "Extensions processed: $installed_count installed, $skipped_count skipped/failed"
+    
+    if [[ $installed_count -gt 0 ]]; then
+        increment_changes
+    fi
+    
+    return 0
+}
+
 print_manual_install_reminder() {
     # Check if terminal supports colors (is a tty)
     local use_color=false
@@ -1411,6 +1593,8 @@ main() {
     create_symlinks
     process_brewfile
     install_cli_tools
+    patch_vscode_insiders_product_json
+    install_editor_extensions
     clone_repos
     install_powerline_fonts
     validate_secrets
