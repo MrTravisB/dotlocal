@@ -1517,6 +1517,51 @@ install_editor_extensions() {
     return 0
 }
 
+apply_macos_defaults() {
+    log_info "Applying macOS defaults..."
+    
+    # Skip if not on real $HOME
+    if ! is_real_home; then
+        log_skip "macOS defaults (not on real \$HOME)"
+        return 0
+    fi
+    
+    # Define path to defaults script
+    local defaults_script="${REPO_DIR}/macos/defaults.sh"
+    
+    # Check if defaults script exists
+    if [[ ! -f "$defaults_script" ]]; then
+        log_skip "macOS defaults script not found at $defaults_script"
+        return 0
+    fi
+    
+    # Check if script is executable
+    if [[ ! -x "$defaults_script" ]]; then
+        log_warn "macOS defaults script is not executable, fixing permissions..."
+        if [[ "$DRY_RUN" == false ]]; then
+            chmod +x "$defaults_script"
+        fi
+    fi
+    
+    # Run the defaults script
+    if [[ "$DRY_RUN" == true ]]; then
+        log_dry "$defaults_script --dry-run"
+        # Actually run it in dry-run mode to show what would be done
+        "$defaults_script" --dry-run
+    else
+        log_info "Running macOS defaults script..."
+        if "$defaults_script"; then
+            log_ok "macOS defaults applied successfully"
+            increment_changes
+        else
+            log_error "Failed to apply macOS defaults"
+            return 1
+        fi
+    fi
+    
+    return 0
+}
+
 print_manual_install_reminder() {
     # Check if terminal supports colors (is a tty)
     local use_color=false
@@ -1600,6 +1645,7 @@ main() {
     validate_secrets
     setup_ssh_key
     configure_screenshot_location
+    apply_macos_defaults
     register_launchd
     
     # Summary
