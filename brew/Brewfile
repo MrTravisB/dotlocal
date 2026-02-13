@@ -21,6 +21,7 @@ brew "diff-so-fancy"     # Good-looking diffs for git
 brew "jq"                # JSON processor
 brew "fx"                # Terminal JSON viewer
 brew "wget"              # File retriever
+brew "age"               # File encryption tool
 
 # ==============================================================================
 # Desktop Apps (Casks)
@@ -57,4 +58,5 @@ cask "figma"
 # Other/Utilities
 cask "granola"
 cask "1password"
+cask "1password-cli"
 cask "clocker"           # Menu bar timezone tracker

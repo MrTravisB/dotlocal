@@ -1522,6 +1522,100 @@ apply_macos_defaults() {
     return 0
 }
 
+setup_1password_and_decrypt_fonts() {
+    log_info "Setting up 1Password and decrypting fonts..."
+    
+    # Skip if not on real $HOME
+    if ! is_real_home; then
+        log_skip "1Password and font decryption (not on real \$HOME)"
+        return 0
+    fi
+    
+    # Check if op CLI is installed
+    if ! command -v op &> /dev/null; then
+        log_skip "1Password CLI not installed, skipping font decryption"
+        return 0
+    fi
+    
+    # Check if encrypted fonts archive exists
+    local encrypted_fonts="${REPO_DIR}/fonts.tar.gz.age"
+    if [[ ! -f "$encrypted_fonts" ]]; then
+        log_skip "Encrypted fonts archive not found at $encrypted_fonts"
+        return 0
+    fi
+    
+    # Dry-run mode
+    if [[ "$DRY_RUN" == true ]]; then
+        log_dry "Would check if signed into 1Password: op account list"
+        log_dry "Would prompt: Please sign into 1Password app, then press Enter..."
+        log_dry "Would create directory: mkdir -p ${TARGET_HOME}/.dotlocal-secrets"
+        log_dry "Would retrieve key: op read \"op://Personal/dotlocal-fonts-key/notes\" > ${TARGET_HOME}/.dotlocal-secrets/fonts.age"
+        log_dry "Would decrypt fonts: age -d -i ${TARGET_HOME}/.dotlocal-secrets/fonts.age < $encrypted_fonts | tar xzf - -C ${REPO_DIR}/fonts/"
+        return 0
+    fi
+    
+    # Check if already signed in to 1Password
+    if ! op account list &> /dev/null; then
+        log_info "Not signed into 1Password"
+        echo ""
+        echo "=========================================="
+        echo "1Password Sign-In Required"
+        echo "=========================================="
+        echo "Please sign into the 1Password app, then press Enter to continue..."
+        read -r
+        
+        # Verify sign-in worked
+        if ! op account list &> /dev/null; then
+            log_error "Still not signed into 1Password. Skipping font decryption."
+            return 0
+        fi
+    fi
+    
+    log_ok "Signed into 1Password"
+    
+    # Ensure .dotlocal-secrets directory exists
+    local secrets_dir="${TARGET_HOME}/.dotlocal-secrets"
+    ensure_dir "$secrets_dir"
+    
+    # Set proper permissions on secrets directory
+    chmod 700 "$secrets_dir"
+    
+    # Retrieve age key from 1Password
+    local age_key_file="${secrets_dir}/fonts.age"
+    log_info "Retrieving age key from 1Password..."
+    
+    if op read "op://Personal/dotlocal-fonts-key/notes" > "$age_key_file" 2>/dev/null; then
+        log_ok "Retrieved age key from 1Password"
+        chmod 600 "$age_key_file"
+    else
+        log_error "Failed to retrieve age key from 1Password"
+        log_error "Make sure the item 'dotlocal-fonts-key' exists in your Personal vault"
+        return 0
+    fi
+    
+    # Check if age is installed
+    if ! command -v age &> /dev/null; then
+        log_error "age is not installed, cannot decrypt fonts"
+        return 0
+    fi
+    
+    # Ensure fonts directory exists
+    local fonts_dir="${REPO_DIR}/fonts"
+    ensure_dir "$fonts_dir"
+    
+    # Decrypt fonts
+    log_info "Decrypting fonts..."
+    if age -d -i "$age_key_file" < "$encrypted_fonts" | tar xzf - -C "$fonts_dir"; then
+        log_ok "Fonts decrypted successfully"
+        increment_changes
+    else
+        log_error "Failed to decrypt fonts"
+        return 1
+    fi
+    
+    return 0
+}
+
 print_manual_install_reminder() {
     # Check if terminal supports colors (is a tty)
     local use_color=false
@@ -1592,11 +1686,19 @@ main() {
     ensure_dir "$TARGET_HOME"
     
     # Run installation steps
+    # Install Homebrew first
     install_homebrew
+    
+    # Process Brewfile early to install 1Password, 1Password CLI, and age
+    process_brewfile
+    
+    # Setup 1Password and decrypt fonts (requires 1Password CLI and age from Brewfile)
+    setup_1password_and_decrypt_fonts
+    
+    # Continue with rest of installation
     install_oh_my_zsh
     parse_manifest
     create_symlinks
-    process_brewfile
     install_cli_tools
     patch_vscode_insiders_product_json
     install_editor_extensions

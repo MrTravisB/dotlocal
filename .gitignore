@@ -8,3 +8,8 @@
 # dotlocal - machine-specific files
 local.toml
 .secrets
+
+# Encrypted fonts
+fonts/
+*.age
+!fonts.tar.gz.age
