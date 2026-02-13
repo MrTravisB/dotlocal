@@ -35,6 +35,7 @@ cask "notion-calendar"
 cask "linear-linear"
 cask "rectangle"
 cask "stay"
+cask "google-drive"
 
 # Communication
 cask "slack"
