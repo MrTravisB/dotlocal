@@ -1616,6 +1616,64 @@ setup_1password_and_decrypt_fonts() {
     return 0
 }
 
+configure_git_identity() {
+    log_info "Configuring git identity..."
+    
+    # Skip if not on real $HOME
+    if ! is_real_home; then
+        log_skip "Git identity configuration (not on real \$HOME)"
+        return 0
+    fi
+    
+    # Define path to local git config
+    local git_config_local="${TARGET_HOME}/.gitconfig.local"
+    
+    # Check if .gitconfig.local already exists
+    if [[ -f "$git_config_local" ]]; then
+        log_ok "Git identity already configured at $git_config_local"
+        return 0
+    fi
+    
+    # Dry-run mode
+    if [[ "$DRY_RUN" == true ]]; then
+        log_dry "Would prompt for Git name and email"
+        log_dry "Would create $git_config_local with user configuration"
+        return 0
+    fi
+    
+    # Prompt for git name and email
+    local git_name=""
+    local git_email=""
+    
+    echo ""
+    echo "=========================================="
+    echo "Git Identity Configuration"
+    echo "=========================================="
+    read -p "Enter your Git name: " git_name
+    read -p "Enter your Git email: " git_email
+    
+    # Validate inputs are not empty
+    if [[ -z "$git_name" || -z "$git_email" ]]; then
+        log_warn "Git name or email not provided, skipping git identity configuration"
+        return 0
+    fi
+    
+    # Create .gitconfig.local with user configuration
+    log_info "Creating $git_config_local..."
+    cat > "$git_config_local" <<EOF
+[user]
+    name = $git_name
+    email = $git_email
+EOF
+    
+    log_ok "Git identity configured successfully"
+    log_info "  Name: $git_name"
+    log_info "  Email: $git_email"
+    increment_changes
+    
+    return 0
+}
+
 print_manual_install_reminder() {
     # Check if terminal supports colors (is a tty)
     local use_color=false
@@ -1699,6 +1757,7 @@ main() {
     install_oh_my_zsh
     parse_manifest
     create_symlinks
+    configure_git_identity
     install_cli_tools
     patch_vscode_insiders_product_json
     install_editor_extensions

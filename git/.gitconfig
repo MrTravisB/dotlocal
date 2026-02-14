@@ -2,6 +2,9 @@
 name = Travis Beauvais
 email = REDACTED@example.com
 
+[include]
+path = ~/.gitconfig.local
+
 [pager]
 diff = delta
 log = delta
