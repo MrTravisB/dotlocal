@@ -1625,19 +1625,24 @@ configure_git_identity() {
         return 0
     fi
     
-    # Define path to local git config
-    local git_config_local="${TARGET_HOME}/.gitconfig.local"
+    # Check if user.name and user.email are already set
+    local current_name
+    local current_email
+    current_name=$(git config --global user.name 2>/dev/null || echo "")
+    current_email=$(git config --global user.email 2>/dev/null || echo "")
     
-    # Check if .gitconfig.local already exists
-    if [[ -f "$git_config_local" ]]; then
-        log_ok "Git identity already configured at $git_config_local"
+    if [[ -n "$current_name" && -n "$current_email" ]]; then
+        log_ok "Git identity already configured"
+        log_info "  Name: $current_name"
+        log_info "  Email: $current_email"
         return 0
     fi
     
     # Dry-run mode
     if [[ "$DRY_RUN" == true ]]; then
         log_dry "Would prompt for Git name and email"
-        log_dry "Would create $git_config_local with user configuration"
+        log_dry "Would run: git config --global user.name <name>"
+        log_dry "Would run: git config --global user.email <email>"
         return 0
     fi
     
@@ -1658,13 +1663,10 @@ configure_git_identity() {
         return 0
     fi
     
-    # Create .gitconfig.local with user configuration
-    log_info "Creating $git_config_local..."
-    cat > "$git_config_local" <<EOF
-[user]
-    name = $git_name
-    email = $git_email
-EOF
+    # Set git identity using git config
+    log_info "Setting git identity..."
+    git config --global user.name "$git_name"
+    git config --global user.email "$git_email"
     
     log_ok "Git identity configured successfully"
     log_info "  Name: $git_name"
