@@ -1676,6 +1676,136 @@ configure_git_identity() {
     return 0
 }
 
+configure_ssh_signing() {
+    log_info "Configuring SSH signing for git commits..."
+    
+    # Skip if not on real $HOME
+    if ! is_real_home; then
+        log_skip "SSH signing configuration (not on real \$HOME)"
+        return 0
+    fi
+    
+    # Check if already configured
+    local current_format
+    current_format=$(git config --global gpg.format 2>/dev/null || echo "")
+    
+    if [[ "$current_format" == "ssh" ]]; then
+        local current_key
+        current_key=$(git config --global user.signingkey 2>/dev/null || echo "")
+        log_ok "SSH signing already configured"
+        if [[ -n "$current_key" ]]; then
+            log_info "  Signing key: $current_key"
+        fi
+        return 0
+    fi
+    
+    # Dry-run mode
+    if [[ "$DRY_RUN" == true ]]; then
+        log_dry "Would prompt: Would you like to enable SSH signing for git commits? (y/n)"
+        log_dry "Would check for SSH public keys in ~/.ssh/"
+        log_dry "Would run: git config --global gpg.format ssh"
+        log_dry "Would run: git config --global user.signingkey <path_to_pub_key>"
+        log_dry "Would run: git config --global commit.gpgsign true"
+        return 0
+    fi
+    
+    # Prompt user
+    echo ""
+    echo "=========================================="
+    echo "SSH Signing Configuration"
+    echo "=========================================="
+    read -p "Would you like to enable SSH signing for git commits? (y/n): " -n 1 -r
+    echo
+    
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        log_skip "SSH signing configuration (user declined)"
+        return 0
+    fi
+    
+    # Look for SSH public keys in order of preference
+    local ssh_dir="${TARGET_HOME}/.ssh"
+    local -a preferred_keys=("id_ed25519.pub" "id_rsa.pub")
+    local -a found_keys=()
+    
+    # Check preferred keys first
+    for key_name in "${preferred_keys[@]}"; do
+        local key_path="${ssh_dir}/${key_name}"
+        if [[ -f "$key_path" ]]; then
+            found_keys+=("$key_path")
+        fi
+    done
+    
+    # Find any other .pub files
+    if [[ -d "$ssh_dir" ]]; then
+        while IFS= read -r -d '' pub_file; do
+            local basename_key
+            basename_key=$(basename "$pub_file")
+            # Skip if already in found_keys
+            local already_added=false
+            for existing_key in "${found_keys[@]}"; do
+                if [[ "$(basename "$existing_key")" == "$basename_key" ]]; then
+                    already_added=true
+                    break
+                fi
+            done
+            if [[ "$already_added" == false ]]; then
+                found_keys+=("$pub_file")
+            fi
+        done < <(find "$ssh_dir" -maxdepth 1 -name "*.pub" -type f -print0 2>/dev/null)
+    fi
+    
+    # Handle based on number of keys found
+    local selected_key=""
+    
+    if [[ ${#found_keys[@]} -eq 0 ]]; then
+        log_warn "No SSH public keys found in $ssh_dir"
+        log_info "Please run 'ssh-keygen' to create a new SSH key, or use 1Password SSH agent"
+        log_info "Then re-run this installer to configure SSH signing"
+        return 0
+    elif [[ ${#found_keys[@]} -eq 1 ]]; then
+        selected_key="${found_keys[0]}"
+        log_info "Found SSH key: $selected_key"
+    else
+        echo "Found multiple SSH keys:"
+        for i in "${!found_keys[@]}"; do
+            echo "  $((i+1)). ${found_keys[$i]}"
+        done
+        echo ""
+        read -p "Select key number (1-${#found_keys[@]}): " key_selection
+        
+        # Validate selection
+        if [[ "$key_selection" =~ ^[0-9]+$ ]] && [[ "$key_selection" -ge 1 ]] && [[ "$key_selection" -le ${#found_keys[@]} ]]; then
+            selected_key="${found_keys[$((key_selection-1))]}"
+            log_info "Selected: $selected_key"
+        else
+            log_warn "Invalid selection, skipping SSH signing configuration"
+            return 0
+        fi
+    fi
+    
+    # Configure git
+    log_info "Configuring git for SSH signing..."
+    git config --global gpg.format ssh
+    git config --global user.signingkey "$selected_key"
+    git config --global commit.gpgsign true
+    
+    log_ok "SSH signing configured successfully"
+    log_info "  Format: ssh"
+    log_info "  Signing key: $selected_key"
+    
+    # Print reminder
+    echo ""
+    echo "Don't forget to add your SSH public key to GitHub as a Signing Key:"
+    echo "  1. Copy your public key: pbcopy < $selected_key"
+    echo "  2. Go to: Settings → SSH and GPG keys → New SSH key"
+    echo "  3. Select 'Key type: Signing Key' and paste your key"
+    echo ""
+    
+    increment_changes
+    
+    return 0
+}
+
 print_manual_install_reminder() {
     # Check if terminal supports colors (is a tty)
     local use_color=false
@@ -1760,6 +1890,7 @@ main() {
     parse_manifest
     create_symlinks
     configure_git_identity
+    configure_ssh_signing
     install_cli_tools
     patch_vscode_insiders_product_json
     install_editor_extensions
