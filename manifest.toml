@@ -102,3 +102,15 @@ target = "~/.config/ghostty/config"
 source = "fonts/"
 target = "~/Library/Fonts/"
 mode = "copy"
+
+# =============================================================================
+# Claude Code Configuration
+# =============================================================================
+
+[[claude]]
+source = "claude/settings.json"
+target = "~/.claude/settings.json"
+
+[[claude]]
+source = "claude/statusline.sh"
+target = "~/.claude/statusline.sh"

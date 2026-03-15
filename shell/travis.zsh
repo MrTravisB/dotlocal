@@ -99,8 +99,8 @@ alias tf='terraform'
 # Aliases: File Operations
 # ==============================================================================
 
-alias ls='eza -lah -t modified --git --time-style long-iso'
-alias ls-t='eza -lh -t modified --git --time-style long-iso --tree'
+alias ls='eza -lah -t modified --git --icons --group-directories-first --time-style long-iso'
+alias ls-t='eza -lh -t modified --git --icons --group-directories-first --time-style long-iso --tree'
 alias cat='bat'
 alias ccat='/bin/cat'
 alias rmf='rm -rf'

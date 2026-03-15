@@ -708,94 +708,36 @@ create_symlinks() {
 }
 
 process_brewfile() {
-    log_info "Processing Brewfile..."
-    
+    log_info "Processing Brewfile (CLI tools only)..."
+
     # Skip if not on real $HOME
     if ! is_real_home; then
         log_skip "Brewfile processing (not on real \$HOME)"
         return 0
     fi
-    
+
     # Check if Brewfile exists
     local brewfile="${REPO_DIR}/brew/Brewfile"
     if [[ ! -f "$brewfile" ]]; then
         log_warn "Brewfile not found at $brewfile (skipping)"
         return 0
     fi
-    
-    # Determine which Brewfile to use
-    local target_brewfile="$brewfile"
-    local temp_brewfile=""
-    
-    # If we have apps to skip, create a temporary Brewfile
-    if [[ ${#SKIP_APPS[@]:-0} -gt 0 ]]; then
-        log_info "Creating temporary Brewfile with ${#SKIP_APPS[@]} apps skipped"
-        temp_brewfile="${REPO_DIR}/.brewfile.tmp"
-        
-        # Create temporary Brewfile with skipped apps commented out
-        if [[ "$DRY_RUN" == true ]]; then
-            log_dry "Would create temporary Brewfile at $temp_brewfile"
-        else
-            # Process the Brewfile line by line
-            while IFS= read -r line; do
-                local should_skip=false
-                
-                # Check if this line defines a brew or cask
-                if [[ "$line" =~ ^[[:space:]]*(brew|cask)[[:space:]]+\"([^\"]+)\" ]]; then
-                    local app_name="${BASH_REMATCH[2]}"
-                    
-                    # Check if this app should be skipped
-                    if is_app_skipped "$app_name"; then
-                        echo "# [SKIPPED by local.toml] $line" >> "$temp_brewfile"
-                        should_skip=true
-                    fi
-                fi
-                
-                # Write the line as-is if not skipped
-                if [[ "$should_skip" == false ]]; then
-                    echo "$line" >> "$temp_brewfile"
-                fi
-            done < "$brewfile"
-            
-            log_info "Temporary Brewfile created"
-        fi
-        
-        target_brewfile="$temp_brewfile"
-    fi
-    
+
     # Run brew bundle
     if [[ "$DRY_RUN" == true ]]; then
-        log_dry "Would run: brew bundle --file=$target_brewfile --no-lock"
-        if [[ -n "$temp_brewfile" ]]; then
-            log_dry "Would remove temporary Brewfile: $temp_brewfile"
-        fi
+        log_dry "Would run: brew bundle --file=$brewfile"
     else
         log_info "Running brew bundle..."
-        
-        # Run brew bundle and capture exit code
-        # brew bundle returns 0 if successful, including when packages are installed
-        if brew bundle --file="$target_brewfile" --no-lock; then
+
+        if brew bundle --file="$brewfile"; then
             log_ok "Brew bundle completed successfully"
-            # Track that we made changes (brew bundle was run)
-            # Note: We can't easily detect if packages were actually installed,
-            # so we track that the operation ran successfully
             increment_changes
         else
             log_error "Brew bundle failed"
-            # Clean up temp file before returning
-            if [[ -n "$temp_brewfile" && -f "$temp_brewfile" ]]; then
-                rm -f "$temp_brewfile"
-            fi
             return 1
         fi
-        
-        # Clean up temporary Brewfile
-        if [[ -n "$temp_brewfile" && -f "$temp_brewfile" ]]; then
-            rm -f "$temp_brewfile"
-            log_info "Removed temporary Brewfile"
-        fi
     fi
-    
+
     return 0
 }
 
@@ -853,36 +795,68 @@ install_cli_tools() {
     fi
     
     # -------------------------------------------------------------------------
-    # opencode
+    # Claude Code CLI
     # -------------------------------------------------------------------------
-    log_info "Checking opencode..."
-    if command -v opencode &> /dev/null; then
-        log_ok "opencode already installed: $(opencode --version 2>/dev/null || echo 'version unknown')"
+    log_info "Checking Claude Code CLI..."
+    if command -v claude &> /dev/null; then
+        log_ok "Claude Code CLI already installed: $(claude --version 2>/dev/null || echo 'version unknown')"
     else
         if [[ "$DRY_RUN" == true ]]; then
-            log_dry "Would install opencode using npm"
+            log_dry "Would install Claude Code CLI using official installer"
         else
-            # Check if npm is available
-            if ! command -v npm &> /dev/null; then
-                log_warn "npm not found, cannot install opencode (install Node.js first)"
+            log_info "Installing Claude Code CLI..."
+            if curl -fsSL https://claude.ai/install.sh | sh; then
+                log_ok "Claude Code CLI installed successfully"
+                increment_changes
+                ((tools_installed++)) || true
             else
-                log_info "Installing opencode..."
-                if npm install -g opencode; then
-                    log_ok "opencode installed successfully"
-                    increment_changes
-                    ((tools_installed++)) || true
-                else
-                    log_error "Failed to install opencode"
-                fi
+                log_error "Failed to install Claude Code CLI"
             fi
         fi
     fi
-    
+
     # Summary
     if [[ "$DRY_RUN" == false && "$tools_installed" -gt 0 ]]; then
         log_ok "Installed $tools_installed CLI tool(s)"
     fi
-    
+
+    return 0
+}
+
+setup_langfuse() {
+    log_info "Setting up Langfuse..."
+
+    # Skip if not on real $HOME
+    if ! is_real_home; then
+        log_skip "Langfuse setup (not on real \$HOME)"
+        return 0
+    fi
+
+    # Check if Docker is available
+    if ! command -v docker &> /dev/null; then
+        log_warn "Docker not installed, skipping Langfuse setup"
+        return 0
+    fi
+
+    local langfuse_dir="${REPO_DIR}/infra/langfuse"
+    if [[ ! -f "$langfuse_dir/start.sh" ]]; then
+        log_warn "Langfuse start.sh not found at $langfuse_dir (skipping)"
+        return 0
+    fi
+
+    if [[ "$DRY_RUN" == true ]]; then
+        log_dry "Would run: $langfuse_dir/start.sh"
+        return 0
+    fi
+
+    log_info "Starting Langfuse (docker compose)..."
+    if bash "$langfuse_dir/start.sh"; then
+        log_ok "Langfuse started at http://localhost:6543"
+        increment_changes
+    else
+        log_error "Failed to start Langfuse"
+    fi
+
     return 0
 }
 
@@ -946,42 +920,6 @@ clone_repos() {
                 ((repos_cloned++)) || true
             else
                 log_error "Failed to clone amix/vimrc"
-            fi
-        fi
-    fi
-    
-    # -------------------------------------------------------------------------
-    # mrtravisb/dotagent
-    # -------------------------------------------------------------------------
-    local dotagent_target="${workspace_dir}/dotagent"
-    log_info "Checking mrtravisb/dotagent..."
-    
-    if [[ -d "$dotagent_target" ]]; then
-        # Directory exists, update it
-        if [[ "$DRY_RUN" == true ]]; then
-            log_dry "Would update $dotagent_target (git pull)"
-        else
-            log_info "Updating mrtravisb/dotagent..."
-            if git -C "$dotagent_target" pull; then
-                log_ok "Updated mrtravisb/dotagent"
-                increment_changes
-                ((repos_updated++)) || true
-            else
-                log_warn "Failed to update mrtravisb/dotagent"
-            fi
-        fi
-    else
-        # Directory does not exist, clone it
-        if [[ "$DRY_RUN" == true ]]; then
-            log_dry "Would clone https://github.com/mrtravisb/dotagent.git to $dotagent_target"
-        else
-            log_info "Cloning mrtravisb/dotagent..."
-            if git clone https://github.com/mrtravisb/dotagent.git "$dotagent_target"; then
-                log_ok "Cloned mrtravisb/dotagent"
-                increment_changes
-                ((repos_cloned++)) || true
-            else
-                log_error "Failed to clone mrtravisb/dotagent"
             fi
         fi
     fi
@@ -1321,8 +1259,8 @@ patch_vscode_insiders_product_json() {
     
     # Check if jq is available
     if ! command -v jq &> /dev/null; then
-        log_error "jq is required to patch product.json but is not installed"
-        return 1
+        log_warn "jq is required to patch product.json but is not installed (skipping)"
+        return 0
     fi
     
     # Create backup of product.json
@@ -1533,7 +1471,7 @@ setup_1password_and_decrypt_fonts() {
     
     # Check if op CLI is installed
     if ! command -v op &> /dev/null; then
-        log_skip "1Password CLI not installed, skipping font decryption"
+        log_skip "1Password CLI (op) not installed, skipping font decryption. Install with: brew install 1password-cli"
         return 0
     fi
     
@@ -1806,6 +1744,66 @@ configure_ssh_signing() {
     return 0
 }
 
+install_desktop_apps() {
+    log_info "Checking desktop apps..."
+
+    # Skip if not on real $HOME
+    if ! is_real_home; then
+        log_skip "Desktop apps check (not on real \$HOME)"
+        return 0
+    fi
+
+    local desktop_apps_file="${REPO_DIR}/brew/desktop-apps.txt"
+    if [[ ! -f "$desktop_apps_file" ]]; then
+        log_warn "Desktop apps file not found at $desktop_apps_file (skipping)"
+        return 0
+    fi
+
+    while true; do
+        local missing_apps=()
+        local missing_urls=()
+
+        while IFS='|' read -r app_name app_url; do
+            # Skip comments and blank lines
+            [[ "$app_name" =~ ^[[:space:]]*# ]] && continue
+            [[ -z "$app_name" ]] && continue
+
+            local app_path="/Applications/${app_name}.app"
+            if [[ ! -d "$app_path" ]]; then
+                missing_apps+=("$app_name")
+                missing_urls+=("$app_url")
+            fi
+        done < "$desktop_apps_file"
+
+        if [[ ${#missing_apps[@]} -eq 0 ]]; then
+            log_ok "All desktop apps installed"
+            return 0
+        fi
+
+        if [[ "$DRY_RUN" == true ]]; then
+            log_dry "Would prompt to install ${#missing_apps[@]} missing desktop apps"
+            return 0
+        fi
+
+        echo ""
+        log_warn "${#missing_apps[@]} desktop app(s) not found in /Applications:"
+        echo ""
+        for i in "${!missing_apps[@]}"; do
+            echo "  [ ] ${missing_apps[$i]}"
+            echo "      ${missing_urls[$i]}"
+        done
+        echo ""
+        echo "Install the missing apps above, then press Enter to re-check."
+        echo "Or type 'skip' to continue without them."
+        read -r response
+
+        if [[ "$response" == "skip" ]]; then
+            log_warn "Skipping desktop app installation"
+            return 0
+        fi
+    done
+}
+
 print_manual_install_reminder() {
     # Check if terminal supports colors (is a tty)
     local use_color=false
@@ -1849,12 +1847,33 @@ print_manual_install_reminder() {
     
     echo -e "${YELLOW}${BOLD}║${RESET}                                                                              ${YELLOW}${BOLD}║${RESET}"
     echo -e "${YELLOW}${BOLD}╠══════════════════════════════════════════════════════════════════════════════╣${RESET}"
-    
-    # Print other manual installs
-    echo -e "${YELLOW}${BOLD}║${RESET} ${BOLD}Other Manual Installs:${RESET}                                                       ${YELLOW}${BOLD}║${RESET}"
-    echo -e "${YELLOW}${BOLD}║${RESET}   • CleanMyMac                                                             ${YELLOW}${BOLD}║${RESET}"
-    echo -e "${YELLOW}${BOLD}║${RESET}     https://macpaw.com/cleanmymac                                           ${YELLOW}${BOLD}║${RESET}"
-    
+
+    # Print desktop apps section
+    local desktop_apps_file="${REPO_DIR}/brew/desktop-apps.txt"
+    if [[ -f "$desktop_apps_file" ]]; then
+        echo -e "${YELLOW}${BOLD}║${RESET} ${BOLD}Desktop Apps${RESET} (download and install manually):                              ${YELLOW}${BOLD}║${RESET}"
+        echo -e "${YELLOW}${BOLD}║${RESET}                                                                              ${YELLOW}${BOLD}║${RESET}"
+
+        while IFS='|' read -r app_name app_url; do
+            # Skip comments and blank lines
+            [[ "$app_name" =~ ^[[:space:]]*# ]] && continue
+            [[ -z "$app_name" ]] && continue
+
+            # Check if app is already installed
+            local app_path="/Applications/${app_name}.app"
+            local status="  "
+            if [[ -d "$app_path" ]]; then
+                status="OK"
+            fi
+
+            local line="   [$status] ${app_name}"
+            printf "${YELLOW}${BOLD}║${RESET} %-76s ${YELLOW}${BOLD}║${RESET}\n" "$line"
+
+            line="        ${app_url}"
+            printf "${YELLOW}${BOLD}║${RESET} %-76s ${YELLOW}${BOLD}║${RESET}\n" "$line"
+        done < "$desktop_apps_file"
+    fi
+
     echo -e "${YELLOW}${BOLD}╚══════════════════════════════════════════════════════════════════════════════╝${RESET}"
     echo ""
 }
@@ -1878,26 +1897,30 @@ main() {
     # Run installation steps
     # Install Homebrew first
     install_homebrew
-    
-    # Process Brewfile early to install 1Password, 1Password CLI, and age
+
+    # Install CLI tools via Brewfile (includes age, needed for font decryption)
     process_brewfile
-    
-    # Setup 1Password and decrypt fonts (requires 1Password CLI and age from Brewfile)
+
+    # Install desktop apps (blocks until all are installed or skipped)
+    install_desktop_apps
+
+    # Setup 1Password and decrypt fonts (requires 1Password app + CLI from desktop apps, age from Brewfile)
     setup_1password_and_decrypt_fonts
-    
+
     # Continue with rest of installation
     install_oh_my_zsh
     parse_manifest
     create_symlinks
     configure_git_identity
+    setup_ssh_key
     configure_ssh_signing
     install_cli_tools
     patch_vscode_insiders_product_json
     install_editor_extensions
     clone_repos
     install_powerline_fonts
+    setup_langfuse
     validate_secrets
-    setup_ssh_key
     apply_macos_defaults
     register_launchd
     

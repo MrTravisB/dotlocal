@@ -40,17 +40,3 @@
 # [[skip]]
 # source = "editor/vscode/settings.json"
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Skip Apps from Installation
-# ─────────────────────────────────────────────────────────────────────────────
-# Use the [apps] section with a `skip` array to exclude specific apps from
-# being installed via Homebrew, Mac App Store, or other mechanisms.
-# App names should match the identifiers used in Brewfile or install scripts.
-#
-# Example: Skip Slack and Discord on a personal machine
-# [apps]
-# skip = ["slack", "discord"]
-#
-# Example: Skip development tools not needed on this machine
-# [apps]
-# skip = ["docker", "postgres", "redis"]
