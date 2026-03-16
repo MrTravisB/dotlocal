@@ -13,4 +13,6 @@ local.toml
 fonts/
 *.age
 !fonts.tar.gz.age
-dotlocal
+
+# Compiled binary
+/dotlocal

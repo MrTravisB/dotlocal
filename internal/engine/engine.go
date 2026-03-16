@@ -77,28 +77,39 @@ func (e *Engine) Sync(ctx context.Context) error {
 		return nil
 	}
 
-	// Phase 3: Apply -- for non-current primitives, apply changes.
+	// Phase 3: Apply -- for non-current primitives, apply changes in
+	// topologically sorted order so dependencies are applied first.
+	actionable := make([]primitive.Primitive, 0, len(results))
 	for _, r := range results {
 		if r.err != nil || r.status == primitive.StatusCurrent {
 			continue
 		}
+		actionable = append(actionable, r.prim)
+	}
 
-		result, err := r.prim.Apply(ctx)
+	sorted, err := TopoSort(actionable)
+	if err != nil {
+		e.ui.Summary(total, current, changed, errored)
+		return fmt.Errorf("dependency resolution failed: %w", err)
+	}
+
+	for _, p := range sorted {
+		result, err := p.Apply(ctx)
 		if err != nil {
-			e.ui.Error(r.prim.ID(), err.Error())
+			e.ui.Error(p.ID(), err.Error())
 			errored++
 			if e.failFast {
 				e.ui.Summary(total, current, changed, errored)
-				return fmt.Errorf("apply failed for %s: %w", r.prim.ID(), err)
+				return fmt.Errorf("apply failed for %s: %w", p.ID(), err)
 			}
 			continue
 		}
 
 		if result.Changed {
-			e.ui.Changed(r.prim.ID(), result.Message)
+			e.ui.Changed(p.ID(), result.Message)
 			changed++
 		} else {
-			e.ui.OK(r.prim.ID(), result.Message)
+			e.ui.OK(p.ID(), result.Message)
 			current++
 		}
 	}

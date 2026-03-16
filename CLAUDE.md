@@ -2,189 +2,166 @@
 
 ## Overview
 
-**dotlocal** is a personal dotfiles and configuration synchronization tool for macOS. It manages shell configs, editor settings, git configuration, terminal emulator preferences, Homebrew packages, SSH config, and fonts across multiple machines.
+**dotlocal** is a personal dotfiles and configuration synchronization tool for macOS. It manages shell configs, editor settings, git configuration, terminal emulator preferences, Homebrew packages, SSH config, fonts, macOS system preferences, and services across multiple machines.
 
 ## Architecture
 
 ### Core Principles
 
-- **Symlink-based**: Config files live in this repo; symlinks point from target locations (e.g., `~/.zshrc`) back to the repo. Changes reflect immediately without re-running install.
-- **No secrets**: API keys, tokens, and credentials are never stored in this repo. Use environment variables or separate secure storage.
-- **Manifest-driven**: A `manifest.toml` file defines the mapping from repo paths to system destinations.
-- **Idempotent scripts**: Running install multiple times produces the same result. Safe to re-run.
+- **Declarative**: A single `dotlocal.toml` file declares all desired system state. The sync tool computes a diff and applies only what's needed.
+- **Symlink-based**: Config files live in this repo; symlinks point from target locations (e.g., `~/.zshrc`) back to the repo. Changes reflect immediately.
+- **No secrets**: API keys, tokens, and credentials are never stored in this repo. Use `~/.secrets` or 1Password.
+- **Idempotent**: Running `dotlocal sync` multiple times produces the same result. Safe to re-run.
 
 ### Directory Structure
 
 ```
 dotlocal/
 ├── CLAUDE.md              # This file
-├── manifest.toml          # Source → destination mappings
+├── dotlocal.toml          # Single source of truth for all configuration
 ├── local.toml             # Machine-specific overrides (gitignored)
 ├── local.toml.example     # Template for local overrides
-├── .secrets               # Environment variables (gitignored)
 ├── .secrets.example       # Template for required secrets
-├── install.sh             # Main install script
-├── sync.sh                # Thin wrapper: git pull + install.sh
-├── uninstall.sh           # Remove symlinks, restore backups
-├── shell/                 # Shell configs (.zshrc, .zprofile, etc.)
-├── git/                   # Git config (.gitconfig, .gitignore_global)
+├── cmd/dotlocal/          # Go CLI entry point
+├── internal/              # Go packages
+│   ├── config/            # TOML config parsing, local.toml merging
+│   ├── engine/            # Sync engine (check-plan-apply), dependency resolution
+│   ├── primitive/         # All primitive type implementations
+│   ├── runner/            # Shell command execution
+│   └── ui/                # Terminal output formatting
+├── shell/                 # Shell configs (.zshrc, etc.)
+├── git/                   # Git config (.gitconfig, .gitignore)
 ├── vim/                   # Vim configuration
-├── editor/                # Editor/IDE settings (VS Code, Vim, etc.)
-├── terminal/              # Terminal emulator configs (iTerm2, Alacritty, etc.)
-├── ssh/                   # SSH config (not keys)
-├── brew/                  # Brewfile and related
-├── fonts/                 # Font files to install
-├── repos/                 # External repo definitions
-└── launchd/               # launchd plist for auto-sync
+├── editor/                # Editor settings, keybindings, extensions list
+├── terminal/              # Terminal configs (Ghostty)
+├── claude/                # Claude Code settings
+├── fonts/                 # Font files (copied, not symlinked)
+├── infra/langfuse/        # Langfuse docker-compose stack
+├── macos/                 # macOS defaults (legacy, now in dotlocal.toml)
+├── launchd/               # launchd plist for auto-sync
+└── brew/                  # Legacy Brewfile (now in dotlocal.toml)
 ```
 
-### Manifest Format
+### Sync Tool
 
-`manifest.toml` uses TOML format to define symlink mappings:
+The `dotlocal` CLI is a compiled Go binary. It reads `dotlocal.toml` and synchronizes the machine to match.
+
+```bash
+dotlocal sync              # Apply changes
+dotlocal sync --dry-run    # Preview what would change
+dotlocal status            # Show drift from desired state
+dotlocal list              # Show all managed primitives
+dotlocal sync --type=symlink,brew_formula  # Filter by type
+```
+
+#### Three-Phase Engine
+
+1. **Check**: Read-only scan of every primitive's current state (current, missing, drift, error)
+2. **Plan**: For non-current primitives, compute what Apply would do. In `--dry-run`, print and exit.
+3. **Apply**: Topologically sort by dependencies, then apply in order. Fail-forward by default.
+
+#### Primitive Types
+
+| Type | Description | State Check |
+|------|-------------|-------------|
+| `brew_tap` | Homebrew tap | `brew tap` output |
+| `brew_formula` | Homebrew CLI tool | `brew list <name>` |
+| `brew_cask` | Homebrew cask (fonts) | `brew list --cask <name>` |
+| `app` | Desktop app (manual install) | `/Applications/<name>.app` exists |
+| `cli_installer` | Tool via curl/sh script | `command -v <name>` |
+| `symlink` | Config file symlink | `readlink` matches source |
+| `copy` | File copy (fonts) | Binary comparison |
+| `git_repo` | External git repo | Directory exists with `.git` |
+| `editor_extension` | VS Code/editor extension | `--list-extensions` output |
+| `macos_default` | macOS system preference | `defaults read` |
+| `launchd` | Background service | Plist file exists |
+| `docker_stack` | Docker compose stack | `docker compose ps` |
+| `secret` | Required env variable | `os.Getenv` |
+| `prompt` | Interactive one-time setup | Check command exit code |
+| `encrypted` | 1Password + age asset | Key cache file exists |
+| `patch` | File modification | Check command exit code |
+
+### Config: `dotlocal.toml`
+
+All desired state is declared in a single TOML file. Each entry uses `[[type]]` array-of-tables syntax:
 
 ```toml
-# Each section is a category (matches directory names)
-# "source" is relative to repo root
-# "target" supports ~ expansion
+[[brew_formula]]
+name = "bat"
 
-[[shell]]
+[[symlink]]
 source = "shell/.zshrc"
 target = "~/.zshrc"
 
-[[shell]]
-source = "shell/.zprofile"
-target = "~/.zprofile"
+[[app]]
+name = "Slack"
+url = "https://slack.com/downloads/mac"
 
-[[git]]
-source = "git/.gitconfig"
-target = "~/.gitconfig"
-
-[[editor]]
-source = "editor/vscode/settings.json"
-target = "~/Library/Application Support/Code/User/settings.json"
-
-# Fonts are copied, not symlinked
-[[fonts]]
-source = "fonts/"
-target = "~/Library/Fonts/"
-mode = "copy"
+[[macos_default]]
+domain = "com.apple.dock"
+key = "tilesize"
+type = "int"
+value = "41"
 ```
 
 ### Local Overrides
 
-Machine-specific configurations are stored in `local.toml` (gitignored). This file allows you to:
-
-- **Add entries**: Define additional symlinks not in `manifest.toml`
-- **Skip manifest entries**: Use `[[skip]]` sections to exclude specific manifest entries on this machine
-- **Skip apps**: Use `[apps].skip` to prevent installation of specific Homebrew packages
-
-Example syntax:
+Machine-specific configurations are stored in `local.toml` (gitignored):
 
 ```toml
-# Add machine-specific symlinks
-[[shell]]
-source = "shell/.zshrc.local"
-target = "~/.zshrc.local"
-
-# Skip a manifest entry
+# Skip entries from dotlocal.toml
 [[skip]]
-category = "shell"
-source = "shell/.zprofile"
+type = "app"
+name = "Docker Desktop"
 
-# Skip Homebrew apps
-[apps]
-skip = ["docker", "visual-studio-code"]
+# Add machine-specific symlinks
+[[symlink]]
+source = "shell/.zshrc.work"
+target = "~/.zshrc.work"
 ```
 
-See `local.toml.example` for a complete reference.
+### Dependency Resolution
+
+Primitives can declare dependencies via `depends_on`. The engine topologically sorts before applying:
+
+```toml
+[[symlink]]
+source = "shell/travis.zsh"
+target = "~/.oh-my-zsh/custom/travis.zsh"
+depends_on = ["git_repo:ohmyzsh"]
+```
 
 ### Secrets
 
-Secrets and credentials are stored in `.secrets` (gitignored, sourced by `.zshrc`). The install script validates that all required secrets are present before proceeding.
-
-Example format:
-
-```bash
-# Required
-export GITHUB_TOKEN="ghp_..."
-export OPENAI_API_KEY="sk-..."
-
-# Optional
-export ANTHROPIC_API_KEY="sk-ant-..."
-```
-
-See `.secrets.example` for the complete list of required and optional secrets.
-
-### External Repositories
-
-The `repos/` directory contains TOML definitions for external repositories to clone during installation. This mechanism (to be implemented via `repos.toml`) enables:
-
-- Cloning third-party dotfiles (e.g., `amix/vimrc` to `~/.vim_runtime`)
-- Cloning personal projects (e.g., `dotagent` to `~/workspace/dotagent`)
-
-### Scripts
-
-| Script         | Purpose                                                                 |
-| -------------- | ----------------------------------------------------------------------- |
-| `install.sh`   | First-time setup: parse manifest, back up existing files, create symlinks, install fonts, install Homebrew packages, register launchd job |
-| `sync.sh`      | Thin wrapper: git pull, then exec install.sh                           |
-| `uninstall.sh` | Remove all symlinks, restore backups, unregister launchd job           |
-
-### Auto-Sync (launchd)
-
-A launchd plist runs `sync.sh` every 15 minutes:
-
-- Pulls from remote (if configured)
-- Re-applies symlinks for any new/changed files
-- Logs output to `~/Library/Logs/dotlocal/sync.log`
+Secrets are stored in `~/.secrets` (gitignored, sourced by `.zshrc`). The sync tool validates required secrets are set. See `.secrets.example` for the template.
 
 ## Conventions
 
 ### Adding New Configs
 
 1. Place the config file in the appropriate category directory
-2. Add an entry to `manifest.toml` with source and target paths
-3. Run `./install.sh` to apply
+2. Add an entry to `dotlocal.toml`
+3. Run `dotlocal sync` to apply
 
-### Backup Strategy
+### Adding New Primitive Types
 
-- Before creating a symlink, `install.sh` checks if a real file exists at the target
-- If yes, it moves the file to `~/.dotlocal-backup/<timestamp>/<original-path>`
-- Backups are not deleted automatically; manage them manually
-
-### SSH Config
-
-- Only `~/.ssh/config` is synced (connection settings, aliases)
-- SSH keys are never stored in this repo
-- Use 1Password, Secretive, or similar for key management
-
-### Fonts
-
-- Fonts are copied (not symlinked) to `~/Library/Fonts/`
-- macOS picks them up automatically; no restart required
-
-### Dependency Installation
-
-All dependencies follow a check-then-install pattern:
-
-- **Homebrew**: Installed automatically if missing using the official install script
-- **Non-Homebrew tools**: Tools like `bun` and `gcloud` use their official installer scripts when not available via Homebrew
-- **Idempotency**: Install scripts check for existing installations before attempting to install
+1. Create `internal/primitive/<type>.go` implementing the `Primitive` interface
+2. Add config struct to `internal/config/config.go`
+3. Wire into `buildPrimitives()` in `cmd/dotlocal/main.go`
 
 ## Tech Stack
 
 | Component     | Choice        |
 | ------------- | ------------- |
 | Platform      | macOS only    |
-| Scripting     | Bash          |
+| CLI tool      | Go            |
 | Config format | TOML          |
 | Auto-sync     | launchd       |
 | Linking       | Symlinks      |
 
 ## Development Guidelines
 
-- Scripts must be POSIX-compatible where possible, but can use Bash 3.2+ features (macOS default)
-- All scripts must be idempotent
-- Use `set -euo pipefail` at the top of all scripts
-- Log actions to stdout; errors to stderr
-- Exit codes: 0 = success, 1 = error, 2 = partial success (some operations failed)
+- Keep primitives simple: Check reads state, Apply makes changes
+- Use `runner.Run()` for shell commands, not `os/exec` directly
+- Fail-forward by default (log error, continue to next primitive)
+- Exit codes: 0 = success, 1 = fatal error, 2 = partial success
