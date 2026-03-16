@@ -17,72 +17,94 @@ log_dir = "~/Library/Logs/dotlocal"
 
 [[brew_tap]]
 name = "gromgit/brewtils"
+depends_on = ["cli:homebrew"]
 
 # =============================================================================
 # Homebrew Formulae (CLI Tools)
 # =============================================================================
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "node"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "go"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "zoxide"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "eza"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "bat"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "podman"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "kubernetes-cli"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "git-delta"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "diff-so-fancy"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "jq"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "fx"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "wget"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "age"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "llmfit"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "mactop"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "chafa"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "csvlens"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "taproom"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "glow"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "googleworkspace-cli"
 
 [[brew_formula]]
+depends_on = ["cli:homebrew"]
 name = "1password-cli"
 
 # =============================================================================
@@ -90,9 +112,11 @@ name = "1password-cli"
 # =============================================================================
 
 [[brew_cask]]
+depends_on = ["cli:homebrew"]
 name = "font-fira-code-nerd-font"
 
 [[brew_cask]]
+depends_on = ["cli:homebrew"]
 name = "font-jetbrains-mono-nerd-font"
 
 # =============================================================================

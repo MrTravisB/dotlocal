@@ -131,30 +131,27 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 
 	var prims []primitive.Primitive
 
-	// Brew taps (auto-depend on cli:homebrew).
+	// Brew taps.
 	for _, t := range cfg.BrewTaps {
-		deps := appendIfMissing(t.DependsOn, "cli:homebrew")
 		prims = append(prims, &primitive.BrewTapPrimitive{
 			Name: t.Name,
-			Deps: deps,
+			Deps: t.DependsOn,
 		})
 	}
 
-	// Brew formulae (auto-depend on cli:homebrew).
+	// Brew formulae.
 	for _, f := range cfg.BrewFormulae {
-		deps := appendIfMissing(f.DependsOn, "cli:homebrew")
 		prims = append(prims, &primitive.BrewFormulaPrimitive{
 			Name: f.Name,
-			Deps: deps,
+			Deps: f.DependsOn,
 		})
 	}
 
-	// Brew casks (auto-depend on cli:homebrew).
+	// Brew casks.
 	for _, c := range cfg.BrewCasks {
-		deps := appendIfMissing(c.DependsOn, "cli:homebrew")
 		prims = append(prims, &primitive.BrewCaskPrimitive{
 			Name: c.Name,
-			Deps: deps,
+			Deps: c.DependsOn,
 		})
 	}
 
