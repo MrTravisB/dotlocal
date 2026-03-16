@@ -768,3 +768,23 @@ depends_on = ["app:Visual Studio Code - Insiders", "brew_formula:jq"]
 check = "jq -e '.extensionsGallery.serviceUrl == \"https://open-vsx.org/vscode/gallery\"' '/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/product.json' > /dev/null 2>&1"
 apply = "jq '.extensionsGallery = {\"serviceUrl\": \"https://open-vsx.org/vscode/gallery\", \"itemUrl\": \"https://open-vsx.org/vscode/item\"}' '/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/product.json' > /tmp/product.json.tmp && mv /tmp/product.json.tmp '/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/product.json'"
 backup = true
+
+# =============================================================================
+# Reminders (printed at end of every sync)
+# =============================================================================
+
+[[reminder]]
+name = "chrome-pwa-messages"
+message = "Install Chrome PWA: Google Messages (https://messages.google.com)"
+
+[[reminder]]
+name = "chrome-pwa-youtube-music"
+message = "Install Chrome PWA: YouTube Music (https://music.youtube.com)"
+
+[[reminder]]
+name = "chrome-pwa-gemini"
+message = "Install Chrome PWA: Gemini (https://gemini.google.com)"
+
+[[reminder]]
+name = "chrome-pwa-meet"
+message = "Install Chrome PWA: Google Meet (https://meet.google.com)"

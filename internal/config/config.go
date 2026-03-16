@@ -32,6 +32,7 @@ type Config struct {
 	Prompts          []Prompt          `toml:"prompt"`
 	Encrypteds       []Encrypted       `toml:"encrypted"`
 	Patches          []Patch           `toml:"patch"`
+	Reminders        []Reminder        `toml:"reminder"`
 }
 
 // Settings contains global configuration.
@@ -159,6 +160,11 @@ type Patch struct {
 	Check       string   `toml:"check"`
 	Apply       string   `toml:"apply"`
 	Backup      bool     `toml:"backup"`
+}
+
+type Reminder struct {
+	Name    string `toml:"name"`
+	Message string `toml:"message"`
 }
 
 // Load reads and parses dotlocal.toml from the given repo directory.

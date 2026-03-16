@@ -356,6 +356,14 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 		})
 	}
 
+	// Reminders (always print, last).
+	for _, r := range cfg.Reminders {
+		prims = append(prims, &primitive.ReminderPrimitive{
+			Name: r.Name,
+			Msg:  r.Message,
+		})
+	}
+
 	return prims
 }
 
