@@ -10,14 +10,15 @@ import (
 // CLIInstallerPrimitive manages a CLI tool installed via a curl/sh script
 // or similar one-liner command.
 type CLIInstallerPrimitive struct {
-	Name       string // display name, e.g. "bun"
-	CheckCmd   string // command to check existence, e.g. "bun"
-	InstallCmd string // install command, e.g. "curl -fsSL https://bun.sh/install | bash"
+	Name       string
+	CheckCmd   string
+	InstallCmd string
+	Deps       []string
 }
 
-func (c *CLIInstallerPrimitive) ID() string        { return "cli_installer:" + c.Name }
-func (c *CLIInstallerPrimitive) Type() string       { return "cli_installer" }
-func (c *CLIInstallerPrimitive) DependsOn() []string { return nil }
+func (c *CLIInstallerPrimitive) ID() string         { return "cli_installer:" + c.Name }
+func (c *CLIInstallerPrimitive) Type() string        { return "cli_installer" }
+func (c *CLIInstallerPrimitive) DependsOn() []string { return c.Deps }
 
 func (c *CLIInstallerPrimitive) Check(_ context.Context) (Status, error) {
 	if runner.CommandExists(c.CheckCmd) {

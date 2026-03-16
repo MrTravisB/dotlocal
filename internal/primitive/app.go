@@ -11,13 +11,14 @@ import (
 // It checks for the presence of the .app bundle and interactively prompts
 // the user to install missing applications.
 type AppPrimitive struct {
-	Name string // e.g. "Google Chrome" (matches /Applications/Google Chrome.app)
-	URL  string // download URL
+	Name string
+	URL  string
+	Deps []string
 }
 
-func (a *AppPrimitive) ID() string        { return "app:" + a.Name }
-func (a *AppPrimitive) Type() string       { return "app" }
-func (a *AppPrimitive) DependsOn() []string { return nil }
+func (a *AppPrimitive) ID() string         { return "app:" + a.Name }
+func (a *AppPrimitive) Type() string        { return "app" }
+func (a *AppPrimitive) DependsOn() []string { return a.Deps }
 
 func (a *AppPrimitive) Check(_ context.Context) (Status, error) {
 	appPath := fmt.Sprintf("/Applications/%s.app", a.Name)

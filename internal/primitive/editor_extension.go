@@ -16,13 +16,14 @@ type Editor struct {
 
 // EditorExtensionPrimitive manages a VS Code / Antigravity extension.
 type EditorExtensionPrimitive struct {
-	ExtID   string   // extension ID, e.g. "esbenp.prettier-vscode"
-	Editors []Editor // editors to install into
+	ExtID   string
+	Editors []Editor
+	Deps    []string
 }
 
-func (e *EditorExtensionPrimitive) ID() string        { return "editor_extension:" + e.ExtID }
-func (e *EditorExtensionPrimitive) Type() string       { return "editor_extension" }
-func (e *EditorExtensionPrimitive) DependsOn() []string { return nil }
+func (e *EditorExtensionPrimitive) ID() string         { return "editor_extension:" + e.ExtID }
+func (e *EditorExtensionPrimitive) Type() string        { return "editor_extension" }
+func (e *EditorExtensionPrimitive) DependsOn() []string { return e.Deps }
 
 func (e *EditorExtensionPrimitive) Check(ctx context.Context) (Status, error) {
 	available, missing := e.partition(ctx)

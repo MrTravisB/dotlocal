@@ -10,10 +10,11 @@ import (
 
 // SymlinkPrimitive manages a symbolic link from a repo source file to a system target location.
 type SymlinkPrimitive struct {
-	Source    string // absolute path to source file in repo
-	Target    string // absolute path to target location
-	RepoDir   string // repo root directory
-	BackupDir string // backup directory for existing files
+	Source    string
+	Target    string
+	RepoDir   string
+	BackupDir string
+	Deps      []string
 }
 
 func (s *SymlinkPrimitive) ID() string {
@@ -30,7 +31,7 @@ func (s *SymlinkPrimitive) Type() string {
 }
 
 func (s *SymlinkPrimitive) DependsOn() []string {
-	return nil
+	return s.Deps
 }
 
 func (s *SymlinkPrimitive) Check(_ context.Context) (Status, error) {

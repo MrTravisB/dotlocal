@@ -12,11 +12,12 @@ import (
 
 // CopyPrimitive copies files matching glob patterns from a source directory to a target directory.
 type CopyPrimitive struct {
-	Source       string   // absolute path to source dir in repo
-	Target       string   // absolute path to target dir
-	GlobPatterns []string // e.g. ["*.ttf", "*.otf"]
+	Source       string
+	Target       string
+	GlobPatterns []string
 	RepoDir      string
 	BackupDir    string
+	Deps         []string
 }
 
 func (c *CopyPrimitive) ID() string {
@@ -33,7 +34,7 @@ func (c *CopyPrimitive) Type() string {
 }
 
 func (c *CopyPrimitive) DependsOn() []string {
-	return nil
+	return c.Deps
 }
 
 func (c *CopyPrimitive) Check(_ context.Context) (Status, error) {

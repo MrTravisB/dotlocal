@@ -10,12 +10,13 @@ import (
 
 // BrewTapPrimitive manages a Homebrew tap.
 type BrewTapPrimitive struct {
-	Name string // e.g. "gromgit/brewtils"
+	Name string
+	Deps []string
 }
 
-func (b *BrewTapPrimitive) ID() string       { return "brew_tap:" + b.Name }
-func (b *BrewTapPrimitive) Type() string      { return "brew_tap" }
-func (b *BrewTapPrimitive) DependsOn() []string { return nil }
+func (b *BrewTapPrimitive) ID() string         { return "brew_tap:" + b.Name }
+func (b *BrewTapPrimitive) Type() string        { return "brew_tap" }
+func (b *BrewTapPrimitive) DependsOn() []string { return b.Deps }
 
 func (b *BrewTapPrimitive) Check(ctx context.Context) (Status, error) {
 	output, err := runner.Run(ctx, "brew tap")
@@ -50,12 +51,13 @@ func (b *BrewTapPrimitive) Apply(ctx context.Context) (*Result, error) {
 
 // BrewFormulaPrimitive manages a Homebrew formula.
 type BrewFormulaPrimitive struct {
-	Name string // e.g. "bat"
+	Name string
+	Deps []string
 }
 
-func (b *BrewFormulaPrimitive) ID() string       { return "brew_formula:" + b.Name }
-func (b *BrewFormulaPrimitive) Type() string      { return "brew_formula" }
-func (b *BrewFormulaPrimitive) DependsOn() []string { return nil }
+func (b *BrewFormulaPrimitive) ID() string         { return "brew_formula:" + b.Name }
+func (b *BrewFormulaPrimitive) Type() string        { return "brew_formula" }
+func (b *BrewFormulaPrimitive) DependsOn() []string { return b.Deps }
 
 func (b *BrewFormulaPrimitive) Check(ctx context.Context) (Status, error) {
 	if runner.RunSilent(ctx, fmt.Sprintf("brew list %s", b.Name)) {
@@ -84,12 +86,13 @@ func (b *BrewFormulaPrimitive) Apply(ctx context.Context) (*Result, error) {
 
 // BrewCaskPrimitive manages a Homebrew cask.
 type BrewCaskPrimitive struct {
-	Name string // e.g. "font-fira-code-nerd-font"
+	Name string
+	Deps []string
 }
 
-func (b *BrewCaskPrimitive) ID() string       { return "brew_cask:" + b.Name }
-func (b *BrewCaskPrimitive) Type() string      { return "brew_cask" }
-func (b *BrewCaskPrimitive) DependsOn() []string { return nil }
+func (b *BrewCaskPrimitive) ID() string         { return "brew_cask:" + b.Name }
+func (b *BrewCaskPrimitive) Type() string        { return "brew_cask" }
+func (b *BrewCaskPrimitive) DependsOn() []string { return b.Deps }
 
 func (b *BrewCaskPrimitive) Check(ctx context.Context) (Status, error) {
 	if runner.RunSilent(ctx, fmt.Sprintf("brew list --cask %s", b.Name)) {

@@ -13,10 +13,11 @@ import (
 // LaunchdPrimitive manages a launchd service by installing a plist into ~/Library/LaunchAgents
 // and loading it via launchctl.
 type LaunchdPrimitive struct {
-	Label        string            // e.g. "com.dotlocal.sync"
-	Source       string            // absolute path to plist source in repo
-	Target       string            // absolute path to target in ~/Library/LaunchAgents/
-	TemplateVars map[string]string // e.g. {"__HOME__": "/Users/t"}
+	Label        string
+	Source       string
+	Target       string
+	TemplateVars map[string]string
+	Deps         []string
 }
 
 func (l *LaunchdPrimitive) ID() string {
@@ -28,7 +29,7 @@ func (l *LaunchdPrimitive) Type() string {
 }
 
 func (l *LaunchdPrimitive) DependsOn() []string {
-	return nil
+	return l.Deps
 }
 
 func (l *LaunchdPrimitive) Check(_ context.Context) (Status, error) {

@@ -10,10 +10,11 @@ import (
 
 // MacOSDefaultPrimitive reads and writes macOS system preferences via the defaults command.
 type MacOSDefaultPrimitive struct {
-	Domain    string // e.g. "com.apple.finder"
-	Key       string // e.g. "ShowPathbar"
-	ValueType string // "bool", "string", "int", "float"
-	Value     string // e.g. "true", "Nlsv", "41"
+	Domain    string
+	Key       string
+	ValueType string
+	Value     string
+	Deps      []string
 }
 
 func (d *MacOSDefaultPrimitive) ID() string {
@@ -25,7 +26,7 @@ func (d *MacOSDefaultPrimitive) Type() string {
 }
 
 func (d *MacOSDefaultPrimitive) DependsOn() []string {
-	return nil
+	return d.Deps
 }
 
 func (d *MacOSDefaultPrimitive) Check(ctx context.Context) (Status, error) {

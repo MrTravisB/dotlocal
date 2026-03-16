@@ -41,26 +41,31 @@ type Settings struct {
 }
 
 type BrewTap struct {
-	Name string `toml:"name"`
+	Name      string   `toml:"name"`
+	DependsOn []string `toml:"depends_on"`
 }
 
 type BrewFormula struct {
-	Name string `toml:"name"`
+	Name      string   `toml:"name"`
+	DependsOn []string `toml:"depends_on"`
 }
 
 type BrewCask struct {
-	Name string `toml:"name"`
+	Name      string   `toml:"name"`
+	DependsOn []string `toml:"depends_on"`
 }
 
 type App struct {
-	Name string `toml:"name"`
-	URL  string `toml:"url"`
+	Name      string   `toml:"name"`
+	URL       string   `toml:"url"`
+	DependsOn []string `toml:"depends_on"`
 }
 
 type CLIInstaller struct {
-	Name    string `toml:"name"`
-	Check   string `toml:"check"`
-	Install string `toml:"install"`
+	Name      string   `toml:"name"`
+	Check     string   `toml:"check"`
+	Install   string   `toml:"install"`
+	DependsOn []string `toml:"depends_on"`
 }
 
 type Symlink struct {
@@ -70,9 +75,10 @@ type Symlink struct {
 }
 
 type Copy struct {
-	Source string `toml:"source"`
-	Target string `toml:"target"`
-	Glob   string `toml:"glob"`
+	Source    string   `toml:"source"`
+	Target   string   `toml:"target"`
+	Glob     string   `toml:"glob"`
+	DependsOn []string `toml:"depends_on"`
 }
 
 type GitRepo struct {
@@ -86,15 +92,17 @@ type GitRepo struct {
 }
 
 type EditorExtension struct {
-	ID   string `toml:"id"`
-	File string `toml:"file"`
+	ID        string   `toml:"id"`
+	File      string   `toml:"file"`
+	DependsOn []string `toml:"depends_on"`
 }
 
 type MacOSDefault struct {
-	Domain string `toml:"domain"`
-	Key    string `toml:"key"`
-	Type   string `toml:"type"`
-	Value  string `toml:"value"`
+	Domain    string   `toml:"domain"`
+	Key       string   `toml:"key"`
+	Type      string   `toml:"type"`
+	Value     string   `toml:"value"`
+	DependsOn []string `toml:"depends_on"`
 }
 
 type Launchd struct {
@@ -102,6 +110,7 @@ type Launchd struct {
 	Source       string            `toml:"source"`
 	Target       string            `toml:"target"`
 	TemplateVars map[string]string `toml:"template_vars"`
+	DependsOn    []string          `toml:"depends_on"`
 }
 
 type DockerStack struct {
@@ -109,10 +118,12 @@ type DockerStack struct {
 	ComposeFile string   `toml:"compose_file"`
 	StartScript string   `toml:"start_script"`
 	Requires    []string `toml:"requires"`
+	DependsOn   []string `toml:"depends_on"`
 }
 
 type Secret struct {
-	Name string `toml:"name"`
+	Name      string   `toml:"name"`
+	DependsOn []string `toml:"depends_on"`
 }
 
 type Prompt struct {

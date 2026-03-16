@@ -289,6 +289,7 @@ target = "~/.claude/statusline.sh"
 source = "fonts/"
 target = "~/Library/Fonts/"
 glob = "*.ttf,*.otf"
+depends_on = ["encrypted:fonts"]
 
 # =============================================================================
 # Git Repos
@@ -656,6 +657,7 @@ name = "langfuse"
 compose_file = "infra/langfuse/docker-compose.yml"
 start_script = "infra/langfuse/start.sh"
 requires = ["docker"]
+depends_on = ["app:Docker Desktop"]
 
 # =============================================================================
 # Secrets
@@ -722,7 +724,7 @@ target = "fonts/"
 key_source = "1password"
 op_item = "op://Personal/dotlocal-fonts-key/notes"
 key_cache = "~/.dotlocal-secrets/fonts.age"
-depends_on = ["brew_formula:age", "brew_formula:1password-cli"]
+depends_on = ["brew_formula:age", "brew_formula:1password-cli", "app:1Password 7 - Password Manager"]
 
 # =============================================================================
 # Patches
@@ -733,6 +735,7 @@ id = "vscode_insiders_openvsx"
 description = "Patch VS Code Insiders for OpenVSX"
 target = "/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/product.json"
 requires = ["jq"]
+depends_on = ["app:Visual Studio Code - Insiders", "brew_formula:jq"]
 check = "jq -e '.extensionsGallery.serviceUrl == \"https://open-vsx.org/vscode/gallery\"' '/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/product.json' > /dev/null 2>&1"
 apply = "jq '.extensionsGallery = {\"serviceUrl\": \"https://open-vsx.org/vscode/gallery\", \"itemUrl\": \"https://open-vsx.org/vscode/item\"}' '/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/product.json' > /tmp/product.json.tmp && mv /tmp/product.json.tmp '/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/product.json'"
 backup = true

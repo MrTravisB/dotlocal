@@ -129,10 +129,11 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 
 	var prims []primitive.Primitive
 
-	// Brew taps first (other brew primitives may depend on them).
+	// Brew taps.
 	for _, t := range cfg.BrewTaps {
 		prims = append(prims, &primitive.BrewTapPrimitive{
 			Name: t.Name,
+			Deps: t.DependsOn,
 		})
 	}
 
@@ -140,6 +141,7 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 	for _, f := range cfg.BrewFormulae {
 		prims = append(prims, &primitive.BrewFormulaPrimitive{
 			Name: f.Name,
+			Deps: f.DependsOn,
 		})
 	}
 
@@ -147,6 +149,7 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 	for _, c := range cfg.BrewCasks {
 		prims = append(prims, &primitive.BrewCaskPrimitive{
 			Name: c.Name,
+			Deps: c.DependsOn,
 		})
 	}
 
@@ -155,6 +158,7 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 		prims = append(prims, &primitive.AppPrimitive{
 			Name: a.Name,
 			URL:  a.URL,
+			Deps: a.DependsOn,
 		})
 	}
 
@@ -164,6 +168,7 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 			Name:       ci.Name,
 			CheckCmd:   ci.Check,
 			InstallCmd: ci.Install,
+			Deps:       ci.DependsOn,
 		})
 	}
 
@@ -193,6 +198,7 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 			Target:    target,
 			RepoDir:   repoDir,
 			BackupDir: backupDir,
+			Deps:      s.DependsOn,
 		})
 	}
 
@@ -218,6 +224,7 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 			GlobPatterns: patterns,
 			RepoDir:      repoDir,
 			BackupDir:    backupDir,
+			Deps:         c.DependsOn,
 		})
 	}
 
@@ -236,12 +243,14 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 				prims = append(prims, &primitive.EditorExtensionPrimitive{
 					ExtID:   id,
 					Editors: editors,
+					Deps:    ext.DependsOn,
 				})
 			}
 		} else if ext.ID != "" {
 			prims = append(prims, &primitive.EditorExtensionPrimitive{
 				ExtID:   ext.ID,
 				Editors: editors,
+				Deps:    ext.DependsOn,
 			})
 		}
 	}
@@ -253,6 +262,7 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 			Key:       d.Key,
 			ValueType: d.Type,
 			Value:     d.Value,
+			Deps:      d.DependsOn,
 		})
 	}
 
@@ -264,6 +274,7 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 			Source:       source,
 			Target:       config.ExpandPath(l.Target),
 			TemplateVars: l.TemplateVars,
+			Deps:         l.DependsOn,
 		})
 	}
 
@@ -286,6 +297,7 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 	for _, s := range cfg.Secrets {
 		prims = append(prims, &primitive.SecretPrimitive{
 			Name: s.Name,
+			Deps: s.DependsOn,
 		})
 	}
 

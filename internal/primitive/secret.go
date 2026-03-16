@@ -13,7 +13,8 @@ import (
 // On Check, it reads ~/.secrets to see if the variable is already defined.
 // On Apply, it prompts the user for the value and appends it to ~/.secrets.
 type SecretPrimitive struct {
-	Name string // env var name, e.g. "OPENAI_API_KEY"
+	Name string
+	Deps []string
 }
 
 func (s *SecretPrimitive) ID() string {
@@ -25,7 +26,7 @@ func (s *SecretPrimitive) Type() string {
 }
 
 func (s *SecretPrimitive) DependsOn() []string {
-	return nil
+	return s.Deps
 }
 
 func (s *SecretPrimitive) Check(_ context.Context) (Status, error) {
