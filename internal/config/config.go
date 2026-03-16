@@ -112,9 +112,7 @@ type DockerStack struct {
 }
 
 type Secret struct {
-	Name     string `toml:"name"`
-	Required bool   `toml:"required"`
-	Template string `toml:"template"`
+	Name string `toml:"name"`
 }
 
 type Prompt struct {

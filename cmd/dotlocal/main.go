@@ -285,8 +285,7 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 	// Secrets.
 	for _, s := range cfg.Secrets {
 		prims = append(prims, &primitive.SecretPrimitive{
-			Name:     s.Name,
-			Required: s.Required,
+			Name: s.Name,
 		})
 	}
 
