@@ -328,11 +328,137 @@ shallow = true
 post_clone = "bash ~/.local/share/fonts/powerline-fonts/install.sh"
 
 # =============================================================================
-# Editor Extensions (loaded from file)
+# Editor Extensions
 # =============================================================================
 
 [[editor_extension]]
-file = "editor/extensions.txt"
+id = "aaron-bond.better-comments"
+
+[[editor_extension]]
+id = "anysphere.cursorpyright"
+
+[[editor_extension]]
+id = "batisteo.vscode-django"
+
+[[editor_extension]]
+id = "bradlc.vscode-tailwindcss"
+
+[[editor_extension]]
+id = "bungcip.better-toml"
+
+[[editor_extension]]
+id = "christian-kohler.path-intellisense"
+
+[[editor_extension]]
+id = "dbaeumer.vscode-eslint"
+
+[[editor_extension]]
+id = "devsense.composer-php-vscode"
+
+[[editor_extension]]
+id = "devsense.intelli-php-vscode"
+
+[[editor_extension]]
+id = "devsense.phptools-vscode"
+
+[[editor_extension]]
+id = "devsense.profiler-php-vscode"
+
+[[editor_extension]]
+id = "donjayamanne.python-environment-manager"
+
+[[editor_extension]]
+id = "donjayamanne.python-extension-pack"
+
+[[editor_extension]]
+id = "emeraldwalk.runonsave"
+
+[[editor_extension]]
+id = "esbenp.prettier-vscode"
+
+[[editor_extension]]
+id = "formulahendry.auto-close-tag"
+
+[[editor_extension]]
+id = "github.github-vscode-theme"
+
+[[editor_extension]]
+id = "golang.go"
+
+[[editor_extension]]
+id = "jaakko.black"
+
+[[editor_extension]]
+id = "jgclark.vscode-todo-highlight"
+
+[[editor_extension]]
+id = "kevinrose.vsc-python-indent"
+
+[[editor_extension]]
+id = "llvm-vs-code-extensions.vscode-clangd"
+
+[[editor_extension]]
+id = "meta.pyrefly"
+
+[[editor_extension]]
+id = "miguelsolorio.fluent-icons"
+
+[[editor_extension]]
+id = "mohsen1.prettify-json"
+
+[[editor_extension]]
+id = "ms-python.debugpy"
+
+[[editor_extension]]
+id = "ms-python.python"
+
+[[editor_extension]]
+id = "ms-python.vscode-python-envs"
+
+[[editor_extension]]
+id = "njpwerner.autodocstring"
+
+[[editor_extension]]
+id = "redhat.java"
+
+[[editor_extension]]
+id = "redhat.vscode-commons"
+
+[[editor_extension]]
+id = "redhat.vscode-yaml"
+
+[[editor_extension]]
+id = "rust-lang.rust-analyzer"
+
+[[editor_extension]]
+id = "sashaweiss.bracket-jumper"
+
+[[editor_extension]]
+id = "shopify.ruby-lsp"
+
+[[editor_extension]]
+id = "steoates.autoimport"
+
+[[editor_extension]]
+id = "vscjava.vscode-gradle"
+
+[[editor_extension]]
+id = "vscjava.vscode-java-debug"
+
+[[editor_extension]]
+id = "vscjava.vscode-java-dependency"
+
+[[editor_extension]]
+id = "vscjava.vscode-java-pack"
+
+[[editor_extension]]
+id = "vscjava.vscode-java-test"
+
+[[editor_extension]]
+id = "vscjava.vscode-maven"
+
+[[editor_extension]]
+id = "wholroyd.jinja"
 
 # =============================================================================
 # macOS Defaults
