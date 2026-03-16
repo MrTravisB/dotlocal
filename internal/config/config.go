@@ -18,7 +18,7 @@ type Config struct {
 	BrewCasks    []BrewCask    `toml:"brew_cask"`
 
 	Apps          []App          `toml:"app"`
-	CLIInstallers []CLIInstaller `toml:"cli_installer"`
+	CLIs []CLI `toml:"cli"`
 
 	Symlinks []Symlink `toml:"symlink"`
 	Copies   []Copy    `toml:"copy"`
@@ -61,7 +61,7 @@ type App struct {
 	DependsOn []string `toml:"depends_on"`
 }
 
-type CLIInstaller struct {
+type CLI struct {
 	Name      string   `toml:"name"`
 	Check     string   `toml:"check"`
 	Install   string   `toml:"install"`

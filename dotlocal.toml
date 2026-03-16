@@ -198,20 +198,25 @@ name = "CleanMyMac"
 url = "https://macpaw.com/cleanmymac"
 
 # =============================================================================
-# CLI Installers (not available via Homebrew)
+# CLI Tools (installed via custom scripts, not Homebrew)
 # =============================================================================
 
-[[cli_installer]]
+[[cli]]
+name = "homebrew"
+check = "brew"
+install = '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+
+[[cli]]
 name = "bun"
 check = "bun"
 install = "curl -fsSL https://bun.sh/install | bash"
 
-[[cli_installer]]
+[[cli]]
 name = "gcloud"
 check = "gcloud"
 install = "curl https://sdk.cloud.google.com | bash -s -- --disable-prompts"
 
-[[cli_installer]]
+[[cli]]
 name = "claude"
 check = "claude"
 install = "curl -fsSL https://claude.ai/install.sh | sh"

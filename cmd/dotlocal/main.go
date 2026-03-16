@@ -131,27 +131,30 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 
 	var prims []primitive.Primitive
 
-	// Brew taps.
+	// Brew taps (auto-depend on cli:homebrew).
 	for _, t := range cfg.BrewTaps {
+		deps := appendIfMissing(t.DependsOn, "cli:homebrew")
 		prims = append(prims, &primitive.BrewTapPrimitive{
 			Name: t.Name,
-			Deps: t.DependsOn,
+			Deps: deps,
 		})
 	}
 
-	// Brew formulae.
+	// Brew formulae (auto-depend on cli:homebrew).
 	for _, f := range cfg.BrewFormulae {
+		deps := appendIfMissing(f.DependsOn, "cli:homebrew")
 		prims = append(prims, &primitive.BrewFormulaPrimitive{
 			Name: f.Name,
-			Deps: f.DependsOn,
+			Deps: deps,
 		})
 	}
 
-	// Brew casks.
+	// Brew casks (auto-depend on cli:homebrew).
 	for _, c := range cfg.BrewCasks {
+		deps := appendIfMissing(c.DependsOn, "cli:homebrew")
 		prims = append(prims, &primitive.BrewCaskPrimitive{
 			Name: c.Name,
-			Deps: c.DependsOn,
+			Deps: deps,
 		})
 	}
 
@@ -164,9 +167,9 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 		})
 	}
 
-	// CLI installers.
-	for _, ci := range cfg.CLIInstallers {
-		prims = append(prims, &primitive.CLIInstallerPrimitive{
+	// CLI tools.
+	for _, ci := range cfg.CLIs {
+		prims = append(prims, &primitive.CLIPrimitive{
 			Name:       ci.Name,
 			CheckCmd:   ci.Check,
 			InstallCmd: ci.Install,
@@ -413,4 +416,16 @@ func filterPrimitives(prims []primitive.Primitive, typeFilter string) []primitiv
 		}
 	}
 	return filtered
+}
+
+// appendIfMissing returns a copy of deps with val appended if not already present.
+func appendIfMissing(deps []string, val string) []string {
+	for _, d := range deps {
+		if d == val {
+			return deps
+		}
+	}
+	result := make([]string, len(deps), len(deps)+1)
+	copy(result, deps)
+	return append(result, val)
 }

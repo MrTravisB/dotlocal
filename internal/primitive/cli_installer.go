@@ -7,27 +7,27 @@ import (
 	"github.com/mrtravisb/dotlocal/internal/runner"
 )
 
-// CLIInstallerPrimitive manages a CLI tool installed via a curl/sh script
+// CLIPrimitive manages a CLI tool installed via a curl/sh script
 // or similar one-liner command.
-type CLIInstallerPrimitive struct {
+type CLIPrimitive struct {
 	Name       string
 	CheckCmd   string
 	InstallCmd string
 	Deps       []string
 }
 
-func (c *CLIInstallerPrimitive) ID() string         { return "cli_installer:" + c.Name }
-func (c *CLIInstallerPrimitive) Type() string        { return "cli_installer" }
-func (c *CLIInstallerPrimitive) DependsOn() []string { return c.Deps }
+func (c *CLIPrimitive) ID() string         { return "cli:" + c.Name }
+func (c *CLIPrimitive) Type() string        { return "cli" }
+func (c *CLIPrimitive) DependsOn() []string { return c.Deps }
 
-func (c *CLIInstallerPrimitive) Check(_ context.Context) (Status, error) {
+func (c *CLIPrimitive) Check(_ context.Context) (Status, error) {
 	if runner.CommandExists(c.CheckCmd) {
 		return StatusCurrent, nil
 	}
 	return StatusMissing, nil
 }
 
-func (c *CLIInstallerPrimitive) Plan(_ context.Context, status Status) (*Action, error) {
+func (c *CLIPrimitive) Plan(_ context.Context, status Status) (*Action, error) {
 	if status == StatusCurrent {
 		return nil, nil
 	}
@@ -37,7 +37,7 @@ func (c *CLIInstallerPrimitive) Plan(_ context.Context, status Status) (*Action,
 	}, nil
 }
 
-func (c *CLIInstallerPrimitive) Apply(ctx context.Context) (*Result, error) {
+func (c *CLIPrimitive) Apply(ctx context.Context) (*Result, error) {
 	_, err := runner.Run(ctx, c.InstallCmd)
 	if err != nil {
 		return nil, fmt.Errorf("installing %s: %w", c.Name, err)
