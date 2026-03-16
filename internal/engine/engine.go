@@ -28,6 +28,11 @@ func New(primitives []primitive.Primitive, ui *ui.UI, dryRun, failFast bool) *En
 
 // Sync runs the three-phase check-plan-apply loop across all primitives.
 func (e *Engine) Sync(ctx context.Context) error {
+	// Validate dependency graph before doing anything.
+	if err := ValidateDeps(e.primitives); err != nil {
+		return fmt.Errorf("dependency validation failed: %w", err)
+	}
+
 	total := len(e.primitives)
 	current := 0
 	changed := 0
@@ -125,6 +130,10 @@ func (e *Engine) Sync(ctx context.Context) error {
 // Status runs check-only mode: inspect every primitive and print its status.
 // No mutations are performed.
 func (e *Engine) Status(ctx context.Context) error {
+	if err := ValidateDeps(e.primitives); err != nil {
+		return fmt.Errorf("dependency validation failed: %w", err)
+	}
+
 	errored := 0
 	for _, p := range e.primitives {
 		status, err := p.Check(ctx)

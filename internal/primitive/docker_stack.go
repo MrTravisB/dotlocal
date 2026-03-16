@@ -10,10 +10,11 @@ import (
 
 // DockerStackPrimitive manages a Docker Compose stack.
 type DockerStackPrimitive struct {
-	Name        string   // e.g. "langfuse"
-	ComposeFile string   // absolute path to docker-compose.yml
-	StartScript string   // absolute path to start.sh (optional, used instead of compose if set)
-	Requires    []string // commands that must exist, e.g. ["docker"]
+	Name        string
+	ComposeFile string
+	StartScript string
+	Requires    []string
+	Deps        []string
 }
 
 func (d *DockerStackPrimitive) ID() string {
@@ -25,7 +26,7 @@ func (d *DockerStackPrimitive) Type() string {
 }
 
 func (d *DockerStackPrimitive) DependsOn() []string {
-	return nil
+	return d.Deps
 }
 
 func (d *DockerStackPrimitive) Check(ctx context.Context) (Status, error) {

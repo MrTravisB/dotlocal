@@ -68,11 +68,13 @@ func main() {
 	case "sync":
 		eng := engine.New(primitives, display, *dryRun, *failFast)
 		if err := eng.Sync(context.Background()); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %s\n", err)
 			os.Exit(1)
 		}
 	case "status":
 		eng := engine.New(primitives, display, false, *failFast)
 		if err := eng.Status(context.Background()); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %s\n", err)
 			os.Exit(1)
 		}
 	case "list":
@@ -290,6 +292,7 @@ func buildPrimitives(cfg *config.Config, repoDir string) []primitive.Primitive {
 			ComposeFile: composeFile,
 			StartScript: startScript,
 			Requires:    ds.Requires,
+			Deps:        ds.DependsOn,
 		})
 	}
 

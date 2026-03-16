@@ -7,6 +7,32 @@ import (
 	"github.com/mrtravisb/dotlocal/internal/primitive"
 )
 
+// ValidateDeps checks all primitives for dependency issues before execution.
+// It verifies: no circular dependencies, and all depends_on targets exist.
+func ValidateDeps(prims []primitive.Primitive) error {
+	ids := make(map[string]bool, len(prims))
+	for _, p := range prims {
+		ids[p.ID()] = true
+	}
+
+	// Check for dangling references.
+	var dangling []string
+	for _, p := range prims {
+		for _, dep := range p.DependsOn() {
+			if !ids[dep] {
+				dangling = append(dangling, fmt.Sprintf("%s depends on %s (not found)", p.ID(), dep))
+			}
+		}
+	}
+	if len(dangling) > 0 {
+		return fmt.Errorf("unresolved dependencies:\n  %s", strings.Join(dangling, "\n  "))
+	}
+
+	// Check for cycles using the full set.
+	_, err := TopoSort(prims)
+	return err
+}
+
 // TopoSort takes a slice of primitives and returns them sorted so that
 // dependencies come before dependents. If a primitive depends on an ID
 // that doesn't exist in the slice, the dependency is silently ignored
