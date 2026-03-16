@@ -662,29 +662,19 @@ requires = ["docker"]
 # =============================================================================
 
 [[secret]]
-name = "GITHUB_TOKEN"
-required = true
-template = ".secrets.example"
-
-[[secret]]
 name = "OPENAI_API_KEY"
-required = false
 
 [[secret]]
 name = "ANTHROPIC_API_KEY"
-required = false
 
 [[secret]]
 name = "CONTEXT7_API_KEY"
-required = false
 
 [[secret]]
 name = "LANGFUSE_SECRET_KEY"
-required = false
 
 [[secret]]
 name = "LANGFUSE_PUBLIC_KEY"
-required = false
 
 # =============================================================================
 # Interactive Prompts
