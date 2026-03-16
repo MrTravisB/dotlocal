@@ -1,0 +1,622 @@
+# dotlocal.toml
+#
+# Single source of truth for machine configuration.
+#
+# Usage:
+#   dotlocal sync              Apply changes
+#   dotlocal sync --dry-run    Preview changes
+#   dotlocal status            Show drift from desired state
+
+[settings]
+backup_dir = "~/.dotlocal-backup"
+log_dir = "~/Library/Logs/dotlocal"
+
+# =============================================================================
+# Homebrew Taps
+# =============================================================================
+
+[[brew_tap]]
+name = "gromgit/brewtils"
+
+# =============================================================================
+# Homebrew Formulae (CLI Tools)
+# =============================================================================
+
+[[brew_formula]]
+name = "node"
+
+[[brew_formula]]
+name = "go"
+
+[[brew_formula]]
+name = "zoxide"
+
+[[brew_formula]]
+name = "eza"
+
+[[brew_formula]]
+name = "bat"
+
+[[brew_formula]]
+name = "podman"
+
+[[brew_formula]]
+name = "kubernetes-cli"
+
+[[brew_formula]]
+name = "git-delta"
+
+[[brew_formula]]
+name = "diff-so-fancy"
+
+[[brew_formula]]
+name = "jq"
+
+[[brew_formula]]
+name = "fx"
+
+[[brew_formula]]
+name = "wget"
+
+[[brew_formula]]
+name = "age"
+
+[[brew_formula]]
+name = "llmfit"
+
+[[brew_formula]]
+name = "mactop"
+
+[[brew_formula]]
+name = "chafa"
+
+[[brew_formula]]
+name = "csvlens"
+
+[[brew_formula]]
+name = "taproom"
+
+[[brew_formula]]
+name = "glow"
+
+[[brew_formula]]
+name = "googleworkspace-cli"
+
+[[brew_formula]]
+name = "1password-cli"
+
+# =============================================================================
+# Homebrew Casks (Fonts)
+# =============================================================================
+
+[[brew_cask]]
+name = "font-fira-code-nerd-font"
+
+[[brew_cask]]
+name = "font-jetbrains-mono-nerd-font"
+
+# =============================================================================
+# Desktop Apps
+# =============================================================================
+
+# Browsers
+[[app]]
+name = "Google Chrome"
+url = "https://www.google.com/chrome/"
+
+[[app]]
+name = "Firefox Nightly"
+url = "https://www.mozilla.org/en-US/firefox/channel/desktop/#nightly"
+
+# Productivity
+[[app]]
+name = "Notion"
+url = "https://www.notion.so/desktop"
+
+[[app]]
+name = "Notion Calendar"
+url = "https://www.notion.so/product/calendar"
+
+[[app]]
+name = "Linear"
+url = "https://linear.app/download"
+
+[[app]]
+name = "Rectangle"
+url = "https://rectangleapp.com"
+
+[[app]]
+name = "Stay"
+url = "https://cordlessdog.com/stay/"
+
+[[app]]
+name = "Google Drive"
+url = "https://www.google.com/drive/download/"
+
+# Communication
+[[app]]
+name = "Slack"
+url = "https://slack.com/downloads/mac"
+
+[[app]]
+name = "Discord"
+url = "https://discord.com/download"
+
+[[app]]
+name = "WhatsApp"
+url = "https://www.whatsapp.com/download"
+
+[[app]]
+name = "Zoom"
+url = "https://zoom.us/download"
+
+# Development
+[[app]]
+name = "Ghostty"
+url = "https://ghostty.org/download"
+
+[[app]]
+name = "iTerm2"
+url = "https://iterm2.com/downloads.html"
+
+[[app]]
+name = "Docker Desktop"
+url = "https://www.docker.com/products/docker-desktop/"
+
+[[app]]
+name = "Visual Studio Code - Insiders"
+url = "https://code.visualstudio.com/insiders/"
+
+[[app]]
+name = "Claude"
+url = "https://claude.ai/download"
+
+[[app]]
+name = "Antigravity"
+url = "https://antigravity.app"
+
+# Design
+[[app]]
+name = "Figma"
+url = "https://www.figma.com/downloads/"
+
+# Utilities
+[[app]]
+name = "Granola"
+url = "https://granola.ai/download"
+
+[[app]]
+name = "1Password 7 - Password Manager"
+url = "https://1password.com/downloads/mac/"
+
+[[app]]
+name = "Clocker"
+url = "https://apps.apple.com/app/clocker/id1056643111"
+
+[[app]]
+name = "CleanMyMac"
+url = "https://macpaw.com/cleanmymac"
+
+# =============================================================================
+# CLI Installers (not available via Homebrew)
+# =============================================================================
+
+[[cli_installer]]
+name = "bun"
+check = "bun"
+install = "curl -fsSL https://bun.sh/install | bash"
+
+[[cli_installer]]
+name = "gcloud"
+check = "gcloud"
+install = "curl https://sdk.cloud.google.com | bash -s -- --disable-prompts"
+
+[[cli_installer]]
+name = "claude"
+check = "claude"
+install = "curl -fsSL https://claude.ai/install.sh | sh"
+
+# =============================================================================
+# Symlinks
+# =============================================================================
+
+# Shell
+[[symlink]]
+source = "shell/.zshrc"
+target = "~/.zshrc"
+
+[[symlink]]
+source = "shell/travis.zsh"
+target = "~/.oh-my-zsh/custom/travis.zsh"
+depends_on = ["git_repo:ohmyzsh"]
+
+[[symlink]]
+source = "shell/travis.zsh-theme"
+target = "~/.oh-my-zsh/themes/travis.zsh-theme"
+depends_on = ["git_repo:ohmyzsh"]
+
+# Git
+[[symlink]]
+source = "git/.gitconfig"
+target = "~/.gitconfig"
+
+[[symlink]]
+source = "git/.gitignore"
+target = "~/.gitignore"
+
+# Vim
+[[symlink]]
+source = "vim/.vimrc"
+target = "~/.vimrc"
+
+# Editor (Antigravity)
+[[symlink]]
+source = "editor/antigravity/settings.json"
+target = "~/Library/Application Support/Antigravity/User/settings.json"
+
+[[symlink]]
+source = "editor/antigravity/keybindings.json"
+target = "~/Library/Application Support/Antigravity/User/keybindings.json"
+
+# Editor (VS Code Insiders, reuses Antigravity config)
+[[symlink]]
+source = "editor/antigravity/settings.json"
+target = "~/Library/Application Support/Code - Insiders/User/settings.json"
+
+[[symlink]]
+source = "editor/antigravity/keybindings.json"
+target = "~/Library/Application Support/Code - Insiders/User/keybindings.json"
+
+# Terminal
+[[symlink]]
+source = "terminal/ghostty/config"
+target = "~/.config/ghostty/config"
+
+# Claude Code
+[[symlink]]
+source = "claude/settings.json"
+target = "~/.claude/settings.json"
+
+[[symlink]]
+source = "claude/statusline.sh"
+target = "~/.claude/statusline.sh"
+
+# =============================================================================
+# Copy (fonts)
+# =============================================================================
+
+[[copy]]
+source = "fonts/"
+target = "~/Library/Fonts/"
+glob = "*.ttf,*.otf"
+
+# =============================================================================
+# Git Repos
+# =============================================================================
+
+[[git_repo]]
+url = "https://github.com/ohmyzsh/ohmyzsh.git"
+target = "~/.oh-my-zsh"
+method = "installer"
+install = 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'
+
+[[git_repo]]
+url = "https://github.com/zsh-users/zsh-syntax-highlighting.git"
+target = "~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+depends_on = ["git_repo:ohmyzsh"]
+
+[[git_repo]]
+url = "https://github.com/zsh-users/zsh-autosuggestions.git"
+target = "~/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+depends_on = ["git_repo:ohmyzsh"]
+
+[[git_repo]]
+url = "https://github.com/zsh-users/zsh-completions.git"
+target = "~/.oh-my-zsh/custom/plugins/zsh-completions"
+depends_on = ["git_repo:ohmyzsh"]
+
+[[git_repo]]
+url = "https://github.com/amix/vimrc.git"
+target = "~/.vim_runtime"
+shallow = true
+post_clone = "bash ~/.vim_runtime/install_awesome_vimrc.sh"
+
+[[git_repo]]
+url = "https://github.com/powerline/fonts.git"
+target = "~/.local/share/fonts/powerline-fonts"
+shallow = true
+post_clone = "bash ~/.local/share/fonts/powerline-fonts/install.sh"
+
+# =============================================================================
+# Editor Extensions (loaded from file)
+# =============================================================================
+
+[[editor_extension]]
+file = "editor/extensions.txt"
+
+# =============================================================================
+# macOS Defaults
+# =============================================================================
+
+# Finder
+[[macos_default]]
+domain = "com.apple.finder"
+key = "FXPreferredViewStyle"
+type = "string"
+value = "Nlsv"
+
+[[macos_default]]
+domain = "com.apple.finder"
+key = "FXDefaultSearchScope"
+type = "string"
+value = "SCcf"
+
+[[macos_default]]
+domain = "com.apple.finder"
+key = "ShowPathbar"
+type = "bool"
+value = "true"
+
+[[macos_default]]
+domain = "com.apple.finder"
+key = "ShowRecentTags"
+type = "bool"
+value = "false"
+
+[[macos_default]]
+domain = "com.apple.finder"
+key = "ShowExternalHardDrivesOnDesktop"
+type = "bool"
+value = "false"
+
+[[macos_default]]
+domain = "com.apple.finder"
+key = "ShowHardDrivesOnDesktop"
+type = "bool"
+value = "false"
+
+[[macos_default]]
+domain = "com.apple.finder"
+key = "ShowRemovableMediaOnDesktop"
+type = "bool"
+value = "false"
+
+[[macos_default]]
+domain = "com.apple.finder"
+key = "NewWindowTarget"
+type = "string"
+value = "PfHm"
+
+[[macos_default]]
+domain = "com.apple.finder"
+key = "SidebarTagsSctionDisclosedState"
+type = "bool"
+value = "false"
+
+[[macos_default]]
+domain = "com.apple.finder"
+key = "FXICloudDriveDesktop"
+type = "bool"
+value = "false"
+
+[[macos_default]]
+domain = "com.apple.finder"
+key = "FXICloudDriveDocuments"
+type = "bool"
+value = "false"
+
+# Dock
+[[macos_default]]
+domain = "com.apple.dock"
+key = "autohide"
+type = "bool"
+value = "false"
+
+[[macos_default]]
+domain = "com.apple.dock"
+key = "autohide-time-modifier"
+type = "float"
+value = "2"
+
+[[macos_default]]
+domain = "com.apple.dock"
+key = "tilesize"
+type = "int"
+value = "41"
+
+[[macos_default]]
+domain = "com.apple.dock"
+key = "largesize"
+type = "int"
+value = "128"
+
+[[macos_default]]
+domain = "com.apple.dock"
+key = "show-recents"
+type = "bool"
+value = "false"
+
+[[macos_default]]
+domain = "com.apple.dock"
+key = "show-process-indicators"
+type = "bool"
+value = "false"
+
+[[macos_default]]
+domain = "com.apple.dock"
+key = "mru-spaces"
+type = "bool"
+value = "false"
+
+[[macos_default]]
+domain = "com.apple.dock"
+key = "wvous-br-corner"
+type = "int"
+value = "14"
+
+# Trackpad
+[[macos_default]]
+domain = "com.apple.AppleMultitouchTrackpad"
+key = "Clicking"
+type = "bool"
+value = "false"
+
+[[macos_default]]
+domain = "com.apple.AppleMultitouchTrackpad"
+key = "ForceSuppressed"
+type = "bool"
+value = "true"
+
+[[macos_default]]
+domain = "com.apple.AppleMultitouchTrackpad"
+key = "TrackpadThreeFingerDrag"
+type = "bool"
+value = "false"
+
+[[macos_default]]
+domain = "com.apple.AppleMultitouchTrackpad"
+key = "TrackpadRightClick"
+type = "bool"
+value = "true"
+
+[[macos_default]]
+domain = "com.apple.AppleMultitouchTrackpad"
+key = "TrackpadPinch"
+type = "bool"
+value = "true"
+
+[[macos_default]]
+domain = "com.apple.AppleMultitouchTrackpad"
+key = "TrackpadRotate"
+type = "bool"
+value = "true"
+
+# Screenshots
+[[macos_default]]
+domain = "com.apple.screencapture"
+key = "location"
+type = "string"
+value = "~/Downloads/screenshots"
+
+# Global
+[[macos_default]]
+domain = "NSGlobalDomain"
+key = "AppleMiniaturizeOnDoubleClick"
+type = "bool"
+value = "false"
+
+[[macos_default]]
+domain = "NSGlobalDomain"
+key = "com.apple.trackpad.forceClick"
+type = "bool"
+value = "true"
+
+# =============================================================================
+# Launchd
+# =============================================================================
+
+[[launchd]]
+label = "com.dotlocal.sync"
+source = "launchd/com.dotlocal.sync.plist"
+target = "~/Library/LaunchAgents/com.dotlocal.sync.plist"
+template_vars = { "__HOME__" = "~" }
+
+# =============================================================================
+# Docker Stacks
+# =============================================================================
+
+[[docker_stack]]
+name = "langfuse"
+compose_file = "infra/langfuse/docker-compose.yml"
+start_script = "infra/langfuse/start.sh"
+requires = ["docker"]
+
+# =============================================================================
+# Secrets
+# =============================================================================
+
+[[secret]]
+name = "GITHUB_TOKEN"
+required = true
+template = ".secrets.example"
+
+[[secret]]
+name = "OPENAI_API_KEY"
+required = false
+
+[[secret]]
+name = "ANTHROPIC_API_KEY"
+required = false
+
+[[secret]]
+name = "CONTEXT7_API_KEY"
+required = false
+
+[[secret]]
+name = "LANGFUSE_SECRET_KEY"
+required = false
+
+[[secret]]
+name = "LANGFUSE_PUBLIC_KEY"
+required = false
+
+# =============================================================================
+# Interactive Prompts
+# =============================================================================
+
+[[prompt]]
+id = "git_identity"
+description = "Git user identity"
+check = "git config --global user.name"
+fields = [
+    { name = "user.name", prompt = "Enter your full name for git" },
+    { name = "user.email", prompt = "Enter your email for git" },
+]
+apply = [
+    "git config --global user.name '{user.name}'",
+    "git config --global user.email '{user.email}'",
+]
+
+[[prompt]]
+id = "ssh_key"
+description = "SSH key generation"
+check = "test -f ~/.ssh/id_rsa || test -f ~/.ssh/id_ed25519"
+fields = [
+    { name = "email", prompt = "Enter your email for SSH key" },
+]
+apply = [
+    "mkdir -p ~/.ssh && chmod 700 ~/.ssh",
+    "ssh-keygen -t rsa -b 4096 -C '{email}' -f ~/.ssh/id_rsa -N ''",
+]
+
+[[prompt]]
+id = "ssh_signing"
+description = "SSH commit signing"
+check = "git config --global gpg.format"
+handler = "ssh_signing"
+
+# =============================================================================
+# Encrypted Assets
+# =============================================================================
+
+[[encrypted]]
+id = "fonts"
+archive = "fonts.tar.gz.age"
+target = "fonts/"
+key_source = "1password"
+op_item = "op://Personal/dotlocal-fonts-key/notes"
+key_cache = "~/.dotlocal-secrets/fonts.age"
+depends_on = ["brew_formula:age", "brew_formula:1password-cli"]
+
+# =============================================================================
+# Patches
+# =============================================================================
+
+[[patch]]
+id = "vscode_insiders_openvsx"
+description = "Patch VS Code Insiders for OpenVSX"
+target = "/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/product.json"
+requires = ["jq"]
+check = "jq -e '.extensionsGallery.serviceUrl == \"https://open-vsx.org/vscode/gallery\"' '/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/product.json' > /dev/null 2>&1"
+apply = "jq '.extensionsGallery = {\"serviceUrl\": \"https://open-vsx.org/vscode/gallery\", \"itemUrl\": \"https://open-vsx.org/vscode/item\"}' '/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/product.json' > /tmp/product.json.tmp && mv /tmp/product.json.tmp '/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/product.json'"
+backup = true
